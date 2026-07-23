@@ -1,148 +1,131 @@
 import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import Animated, { Easing, Keyframe } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
-const DURATION = 600;
+import { StarIcon } from '@/components/ui/StarIcon';
+import { useTheme } from '@/design-system/useTheme';
+import { useAppStore } from '@/hooks/useAppStore';
 
+const STAR_COUNT = 14;
+const STAGGER_MS = 110;
+const SEQUENCE_DURATION_MS = STAR_COUNT * STAGGER_MS + 500;
+const FADE_OUT_MS = 450;
+
+/**
+ * The approved splash artwork (assets/images/splash-icon.png) is shown exactly
+ * as provided — unmodified, uncropped focus, `cover` scaling. The only motion
+ * layered on top is a row of 14 stars lighting up in sequence at the bottom,
+ * matching the app's "14 Stars" progression identity. This overlay hands off
+ * from the native splash screen (same image, so the swap is invisible) and
+ * only fades away once both the loading sequence has played and the app's
+ * persisted state has finished hydrating.
+ */
 export function AnimatedSplashOverlay() {
-  const [animate, setAnimate] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const hasHydrated = useAppStore((s) => s.hasHydrated);
+
+  const [started, setStarted] = useState(false);
+  const [sequenceDone, setSequenceDone] = useState(false);
   const [visible, setVisible] = useState(true);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    if (!started) return undefined;
+    const timer = setTimeout(() => setSequenceDone(true), SEQUENCE_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [started]);
+
+  useEffect(() => {
+    if (!(started && sequenceDone && hasHydrated)) return undefined;
+    opacity.value = withTiming(0, { duration: FADE_OUT_MS, easing: Easing.out(Easing.cubic) });
+    const timer = setTimeout(() => setVisible(false), FADE_OUT_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, sequenceDone, hasHydrated]);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   if (!visible) return null;
 
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: 1 }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
-
-  const image = <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />;
-
-  return animate ? (
+  return (
     <Animated.View
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.splashOverlay}>
-      {image}
+      style={[styles.overlay, animatedStyle]}
+      onLayout={
+        started
+          ? undefined
+          : () => {
+              SplashScreen.hideAsync().finally(() => setStarted(true));
+            }
+      }
+    >
+      <Image
+        source={require('@/assets/images/splash-icon.png')}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+      />
+
+      <View
+        style={[
+          styles.starRow,
+          { bottom: insets.bottom + theme.spacing.xxl, gap: theme.spacing.xxs },
+        ]}
+      >
+        {started && Array.from({ length: STAR_COUNT }).map((_, index) => <LoadingStar key={index} index={index} />)}
+      </View>
     </Animated.View>
-  ) : (
-    <View
-      onLayout={() => {
-        SplashScreen.hideAsync().finally(() => {
-          setAnimate(true);
-        });
-      }}
-      style={styles.splashOverlay}>
-      {image}
-    </View>
   );
 }
 
-const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: INITIAL_SCALE_FACTOR }],
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.7),
-  },
-});
+function LoadingStar({ index }: { index: number }) {
+  const [lit, setLit] = useState(false);
+  const scale = useSharedValue(1);
 
-const logoKeyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-  },
-  40: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-    easing: Easing.elastic(0.7),
-  },
-  100: {
-    opacity: 1,
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.7),
-  },
-});
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLit(true);
+      scale.value = withSequence(
+        withSpring(1.4, { damping: 6, stiffness: 220 }),
+        withSpring(1, { damping: 9, stiffness: 180 }),
+        withRepeat(withSequence(withTiming(1.12, { duration: 900 }), withTiming(1, { duration: 900 })), -1, true)
+      );
+    }, index * STAGGER_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '0deg' }],
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
-});
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
-export function AnimatedIcon() {
   return (
-    <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
-
-      <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
-      </Animated.View>
-    </View>
+    <Animated.View style={animatedStyle}>
+      <StarIcon size={15} fill={lit ? 1 : 0} />
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glow: {
-    width: 201,
-    height: 201,
-    position: 'absolute',
-  },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 128,
-    height: 128,
-    zIndex: 100,
-  },
-  image: {
-    width: 76,
-    height: 71,
-  },
-  background: {
-    borderRadius: 40,
-    experimental_backgroundImage: `linear-gradient(180deg, #3C9FFE, #0274DF)`,
-    width: 128,
-    height: 128,
-    position: 'absolute',
-  },
-  splashOverlay: {
+  overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#0B0E2E',
     zIndex: 1000,
+  },
+  starRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
