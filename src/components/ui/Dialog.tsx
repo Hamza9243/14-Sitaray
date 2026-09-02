@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { createPortal } from 'react-dom';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { useTheme } from '@/design-system/useTheme';
@@ -55,65 +56,72 @@ export function Dialog({
     opacity: opacity.value,
   }));
 
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onRequestClose} statusBarTranslucent>
-      <Pressable
-        style={[styles.backdrop, { backgroundColor: theme.colors.overlay }]}
-        onPress={dismissOnBackdropPress ? onRequestClose : undefined}
-        accessibilityLabel="Dismiss dialog"
-      >
-        <Pressable onPress={() => {}} style={styles.contentWrap}>
-          <Animated.View
-            style={[
-              styles.card,
-              contentStyle,
-              {
-                backgroundColor: theme.colors.surface,
-                borderRadius: theme.radii.lg,
-                padding: theme.spacing.lg,
-              },
-              theme.shadow('xl'),
-            ]}
-          >
-            {icon ? <View style={styles.iconSlot}>{icon}</View> : null}
+  if (!visible) return null;
 
-            {title ? (
-              <Text variant="h3" style={{ textAlign: 'center', marginBottom: message || children ? theme.spacing.xs : 0 }}>
-                {title}
-              </Text>
-            ) : null}
+  // react-native-web's <Modal> renders through a portal too, but its portal host
+  // doesn't mount reliably inside the Capacitor Android WebView — the backdrop's
+  // own screen (whatever gradient/background was already there) stays visible with
+  // no dialog content on top, and the app reads as stuck. Portaling straight to
+  // document.body with React's own createPortal is the same "render outside the
+  // normal tree, on top of everything" behavior Modal is meant to give, implemented
+  // with a plain, universally-supported web API instead of RNW's Modal shim.
+  return createPortal(
+    <Pressable
+      style={[styles.backdrop, { backgroundColor: theme.colors.overlay }]}
+      onPress={dismissOnBackdropPress ? onRequestClose : undefined}
+      accessibilityLabel="Dismiss dialog"
+    >
+      <Pressable onPress={() => {}} style={styles.contentWrap}>
+        <Animated.View
+          style={[
+            styles.card,
+            contentStyle,
+            {
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.radii.lg,
+              padding: theme.spacing.lg,
+            },
+            theme.shadow('xl'),
+          ]}
+        >
+          {icon ? <View style={styles.iconSlot}>{icon}</View> : null}
 
-            {message ? (
-              <Text variant="body" color="textSecondary" style={{ textAlign: 'center' }}>
-                {message}
-              </Text>
-            ) : null}
+          {title ? (
+            <Text variant="h3" style={{ textAlign: 'center', marginBottom: message || children ? theme.spacing.xs : 0 }}>
+              {title}
+            </Text>
+          ) : null}
 
-            {children}
+          {message ? (
+            <Text variant="body" color="textSecondary" style={{ textAlign: 'center' }}>
+              {message}
+            </Text>
+          ) : null}
 
-            {actions.length > 0 ? (
-              <View style={[styles.actions, { gap: theme.spacing.sm, marginTop: theme.spacing.lg }]}>
-                {actions.map((action) => (
-                  <Button
-                    key={action.label}
-                    label={action.label}
-                    variant={action.variant ?? 'primary'}
-                    onPress={action.onPress}
-                    fullWidth
-                  />
-                ))}
-              </View>
-            ) : null}
-          </Animated.View>
-        </Pressable>
+          {children}
+
+          {actions.length > 0 ? (
+            <View style={[styles.actions, { gap: theme.spacing.sm, marginTop: theme.spacing.lg }]}>
+              {actions.map((action) => (
+                <Button key={action.label} label={action.label} variant={action.variant ?? 'primary'} onPress={action.onPress} fullWidth />
+              ))}
+            </View>
+          ) : null}
+        </Animated.View>
       </Pressable>
-    </Modal>
+    </Pressable>,
+    document.body
   );
 }
 
 const styles = StyleSheet.create({
   backdrop: {
-    flex: 1,
+    position: 'fixed' as 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,

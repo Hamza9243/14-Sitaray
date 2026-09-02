@@ -1,20 +1,33 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
     "strict": true,
+    "noFallthroughCasesInSwitch": true,
+
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/assets/*": ["./assets/*"],
+      "expo-router": ["./src/shims/expo-router.tsx"],
+      "@expo/vector-icons": ["./src/shims/vector-icons.tsx"],
+      "expo-linear-gradient": ["./src/shims/expo-linear-gradient.tsx"],
+      "expo-image": ["./src/shims/expo-image.tsx"],
+      "expo-haptics": ["./src/shims/expo-haptics.ts"],
+      "expo-speech": ["./src/shims/expo-speech.ts"],
+      "expo-audio": ["./src/shims/expo-audio.ts"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "include": ["src", "vite.config.ts"]
 }

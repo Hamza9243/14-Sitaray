@@ -38,17 +38,19 @@ export interface SyncedTextHighlightProps {
   script?: 'arabic' | 'latin';
   /** Starts playing automatically as soon as this becomes true (e.g. once this step is shown). */
   autoPlay?: boolean;
-  /** expo-speech playback rate — 1 is normal, <1 slower, >1 faster. */
+  /** Playback rate — 1 is normal, <1 slower, >1 faster. */
   rate?: number;
   onDone?: () => void;
 }
 
 /**
- * Plays the text through on-device TTS and highlights each word as it's
- * spoken, using expo-speech's real `onBoundary` char-offset events (not
- * simulated timing). Note: there's no recorded Arabic recitation audio in
- * this app — this is an on-device Arabic TTS voice reading the dua text,
- * not authentic Qira'at.
+ * Plays the text through the browser's built-in Web Speech API (free, no API key,
+ * no backend — works on every evergreen browser and inside the Capacitor WebView
+ * shell) and highlights each word as it's spoken, using its real `onBoundary`
+ * char-offset events (not simulated timing). Voice quality and language/voice
+ * availability (especially Arabic and Urdu) depend on the device's installed
+ * system voices — there's no recorded reciter audio backing this, it's a
+ * synthesized voice reading the text, not authentic Qira'at when used for duas.
  */
 export function SyncedTextHighlight({ text, script = 'arabic', autoPlay, rate = 1, onDone }: SyncedTextHighlightProps) {
   const { theme } = useTheme();

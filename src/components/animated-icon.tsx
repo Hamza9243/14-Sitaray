@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -13,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import splashIconUri from '@/assets/images/splash-icon.png';
 import { StarIcon } from '@/components/ui/StarIcon';
 import { useTheme } from '@/design-system/useTheme';
 import { useAppStore } from '@/hooks/useAppStore';
@@ -62,19 +62,9 @@ export function AnimatedSplashOverlay() {
   return (
     <Animated.View
       style={[styles.overlay, animatedStyle]}
-      onLayout={
-        started
-          ? undefined
-          : () => {
-              SplashScreen.hideAsync().finally(() => setStarted(true));
-            }
-      }
+      onLayout={started ? undefined : () => setStarted(true)}
     >
-      <Image
-        source={require('@/assets/images/splash-icon.png')}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-      />
+      <Image source={{ uri: splashIconUri }} style={StyleSheet.absoluteFill} contentFit="cover" />
 
       <View
         style={[

@@ -3,13 +3,11 @@
 # dependencies
 node_modules/
 
-# Expo
-.expo/
+# build output
 dist/
-web-build/
-expo-env.d.ts
 
-# Native
+# Capacitor / native
+.gradle/
 .kotlin/
 *.orig.*
 *.jks
@@ -17,9 +15,6 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
-
-# Metro
-.metro-health-check*
 
 # debug
 npm-debug.*
@@ -31,13 +26,17 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.local
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo
 
-example
-
-# generated native folders
-/ios
+# generated native shells — regenerate with `npx cap add android` / `npx cap add ios`
 /android
+/ios
+
+# renamed-aside old Expo prebuild output, kept locally only until confirmed unneeded
+/android.expo-backup

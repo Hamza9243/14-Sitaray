@@ -25,6 +25,8 @@ function formatTime(seconds: number): string {
  * Plays a dua's real reciter recording — no AI text-to-speech is used here, since
  * generic TTS mispronounces Arabic. Remote URLs are downloaded before playback
  * (`downloadFirst`) so replays are instant and don't re-fetch over the network.
+ * When no recording is set yet, the caller (DuaLessonScreen) falls back to
+ * SyncedTextHighlight's on-device voice instead of rendering this component.
  */
 export function DuaAudioPlayer({ audioUrl, reciterName }: DuaAudioPlayerProps) {
   const { theme } = useTheme();

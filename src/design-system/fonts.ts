@@ -1,37 +1,30 @@
-import {
-  Baloo2_500Medium,
-  Baloo2_600SemiBold,
-  Baloo2_700Bold,
-  Baloo2_800ExtraBold,
-} from '@expo-google-fonts/baloo-2';
-import {
-  NotoNaskhArabic_400Regular,
-  NotoNaskhArabic_600SemiBold,
-  NotoNaskhArabic_700Bold,
-} from '@expo-google-fonts/noto-naskh-arabic';
-import {
-  Nunito_400Regular,
-  Nunito_500Medium,
-  Nunito_600SemiBold,
-  Nunito_700Bold,
-  Nunito_800ExtraBold,
-} from '@expo-google-fonts/nunito';
-import { useFonts } from 'expo-font';
+import { useEffect, useState } from 'react';
 
-/** Maps 1:1 to the names used in `tokens/typography.ts`. */
-export function useAppFonts() {
-  return useFonts({
-    Baloo2_500Medium,
-    Baloo2_600SemiBold,
-    Baloo2_700Bold,
-    Baloo2_800ExtraBold,
-    Nunito_400Regular,
-    Nunito_500Medium,
-    Nunito_600SemiBold,
-    Nunito_700Bold,
-    Nunito_800ExtraBold,
-    NotoNaskhArabic_400Regular,
-    NotoNaskhArabic_600SemiBold,
-    NotoNaskhArabic_700Bold,
-  });
+/**
+ * Web has no bundled TTFs to load synchronously — fonts come from public/fonts.css
+ * (a `<link>` in index.html), which the browser fetches independently of JS. This
+ * just waits on the standard `document.fonts.ready` promise so callers get the same
+ * "don't render until fonts are ready" behavior `expo-font`'s `useFonts` gave natively,
+ * with a short timeout fallback so a slow/offline font fetch never blocks the app forever.
+ */
+export function useAppFonts(): [boolean] {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timeout = setTimeout(() => {
+      if (!cancelled) setLoaded(true);
+    }, 2000);
+
+    document.fonts.ready.then(() => {
+      if (!cancelled) setLoaded(true);
+    });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  return [loaded];
 }

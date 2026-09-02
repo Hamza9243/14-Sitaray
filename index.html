@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#0B0E2E" />
+    <title>14 Stars</title>
+    <link rel="icon" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Not a Google Fonts <link> — that would register faces as "Baloo 2" / "Nunito",
+      but every component in this app references the exact Expo-generated PostScript
+      names (e.g. "Baloo2_700Bold") baked into design-system/tokens/typography.ts.
+      public/fonts.css is the same Google-hosted @font-face CSS with font-family
+      renamed to match those names 1:1, so no component had to change.
+    -->
+    <link href="/fonts.css" rel="stylesheet" />
+    <style>
+      html, body, #root {
+        height: 100%;
+        margin: 0;
+        background: #0B0E2E;
+        overscroll-behavior: none;
+      }
+      body {
+        font-family: 'Nunito', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+      /*
+        The RN tree's root <GestureHandlerRootView style={{ flex: 1 }}> only fills the
+        viewport if #root is itself a flex container — otherwise it's a plain block box
+        that grows to fit content, the page scrolls instead of internal ScrollViews, and
+        anything position:absolute-anchored to it (the floating tab bar) drifts below
+        the fold on any screen taller than one viewport.
+      */
+      #root {
+        display: flex;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!--
+      react-native-worklets (a react-native-reanimated dependency) reads
+      `process.env.JEST_WORKER_ID` at module-init time to detect a Jest
+      environment. Vite doesn't polyfill Node's `process` global for the
+      browser, so without this the whole reanimated module throws and every
+      screen using animations (nearly all of them) crashes on load.
+    -->
+    <script>
+      window.process = window.process || { env: {} };
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

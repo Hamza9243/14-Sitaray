@@ -8,6 +8,7 @@ import { MeaningCard } from '@/components/duaLesson/MeaningCard';
 import { MeaningMatchChallenge } from '@/components/duaLesson/MeaningMatchChallenge';
 import { MissingWordChallenge } from '@/components/duaLesson/MissingWordChallenge';
 import { RepeatPrompt } from '@/components/duaLesson/RepeatPrompt';
+import { SyncedTextHighlight } from '@/components/duaLesson/SyncedTextHighlight';
 import { WordOrderChallenge } from '@/components/duaLesson/WordOrderChallenge';
 import { AppBar } from '@/components/ui/AppBar';
 import { ArabicText } from '@/components/ui/ArabicText';
@@ -105,10 +106,18 @@ export function DuaLessonScreen() {
             <Text variant="bodyLarge" color="textSecondary" style={{ textAlign: 'center' }}>
               Listen carefully
             </Text>
-            <ArabicText size={30} weight="semiBold" style={{ textAlign: 'center' }}>
-              {dua.arabic}
-            </ArabicText>
-            <DuaAudioPlayer audioUrl={dua.audioUrl} reciterName={dua.reciterName} />
+            {dua.audioUrl ? (
+              <>
+                <ArabicText size={30} weight="semiBold" style={{ textAlign: 'center' }}>
+                  {dua.arabic}
+                </ArabicText>
+                <DuaAudioPlayer audioUrl={dua.audioUrl} reciterName={dua.reciterName} />
+              </>
+            ) : (
+              // No real reciter recording yet — falls back to the device's built-in
+              // voice (free, on-device) instead of showing nothing at all.
+              <SyncedTextHighlight text={dua.arabic} script="arabic" />
+            )}
             <Text variant="bodySmall" color="textSecondary" style={{ fontStyle: 'italic', textAlign: 'center' }}>
               {dua.transliteration}
             </Text>
