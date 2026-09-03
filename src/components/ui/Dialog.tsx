@@ -1,7 +1,6 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { useTheme } from '@/design-system/useTheme';
 
@@ -37,24 +36,26 @@ export function Dialog({
   dismissOnBackdropPress = true,
 }: DialogProps) {
   const { theme } = useTheme();
-  const scale = useSharedValue(0.85);
-  const opacity = useSharedValue(0);
+  // Entrance animation is plain CSS (transition), not Reanimated: this dialog is the one
+  // Animated.View in the app that mounts late (only once `visible` flips true) AND renders
+  // through a portal — that exact combination reliably breaks react-native-reanimated's web
+  // JS-fallback (_updatePropsJS never receives a usable DOM ref for it), which silently
+  // freezes the card at its initial scale/opacity — invisible forever — and, before a
+  // defensive patch was added to reanimated itself, crash-looped the whole WebView JS engine
+  // instead. A plain useState + CSS transition sidesteps Reanimated for this one animation
+  // entirely, so it can't hit that bug. (This app only ever runs as react-native-web — inside
+  // the browser or inside Capacitor's WebView — so there's no native Animated API to keep in
+  // sync with; CSS transitions are the native mechanism here.)
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
-    if (visible) {
-      scale.value = withSpring(1, theme.motion.spring.bouncy);
-      opacity.value = withTiming(1, theme.motion.timing.fast);
-    } else {
-      scale.value = withTiming(0.85, theme.motion.timing.fast);
-      opacity.value = withTiming(0, theme.motion.timing.fast);
+    if (!visible) {
+      setEntered(false);
+      return undefined;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const raf = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(raf);
   }, [visible]);
-
-  const contentStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
 
   if (!visible) return null;
 
@@ -72,15 +73,19 @@ export function Dialog({
       accessibilityLabel="Dismiss dialog"
     >
       <Pressable onPress={() => {}} style={styles.contentWrap}>
-        <Animated.View
+        <View
           style={[
             styles.card,
-            contentStyle,
             {
               backgroundColor: theme.colors.surface,
               borderRadius: theme.radii.lg,
               padding: theme.spacing.lg,
-            },
+              opacity: entered ? 1 : 0,
+              transform: [{ scale: entered ? 1 : 0.85 }],
+              // `transition` is a raw CSS property RNW passes through to the DOM node as-is —
+              // not part of RN's ViewStyle types, but this app only ever renders on web.
+              transition: 'opacity 180ms ease-out, transform 180ms ease-out',
+            } as object,
             theme.shadow('xl'),
           ]}
         >
@@ -107,7 +112,7 @@ export function Dialog({
               ))}
             </View>
           ) : null}
-        </Animated.View>
+        </View>
       </Pressable>
     </Pressable>,
     document.body

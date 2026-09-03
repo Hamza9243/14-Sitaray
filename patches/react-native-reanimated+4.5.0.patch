@@ -1,0 +1,27 @@
+diff --git a/node_modules/react-native-reanimated/lib/module/ReanimatedModule/js-reanimated/index.js b/node_modules/react-native-reanimated/lib/module/ReanimatedModule/js-reanimated/index.js
+index 65873f8..08a6e48 100644
+--- a/node_modules/react-native-reanimated/lib/module/ReanimatedModule/js-reanimated/index.js
++++ b/node_modules/react-native-reanimated/lib/module/ReanimatedModule/js-reanimated/index.js
+@@ -24,15 +24,19 @@ export const _updatePropsJS = (updates, viewRef, isAnimatedProps) => {
+       // React Native Web 0.19+ no longer provides setNativeProps function,
+       // so we need to update DOM nodes directly.
+       updatePropsDOM(component, rawStyles, isAnimatedProps);
+-    } else if (Object.keys(component.props).length > 0) {
++    } else if (component.props && Object.keys(component.props).length > 0) {
+       Object.keys(component.props).forEach(key => {
+         if (!rawStyles[key]) {
+           return;
+         }
+         const dashedKey = key.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+-        component._touchableNode.setAttribute(dashedKey, rawStyles[key]);
++        // Patched (upstream bug: reanimated's web fallback assumes every non-DOM
++        // component exposes _touchableNode, crashing the whole WebView JS engine
++        // in a tight synchronous loop otherwise — "Cannot convert undefined or
++        // null to object" — whenever an Animated.* wraps a component without one).
++        component._touchableNode?.setAttribute?.(dashedKey, rawStyles[key]);
+       });
+-    } else {
++    } else if (component.props) {
+       const componentName = 'className' in component ? component?.className : '';
+       logger.warn(`It's not possible to manipulate the component ${componentName}`);
+     }

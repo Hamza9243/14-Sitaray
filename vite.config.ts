@@ -28,8 +28,13 @@ export default defineConfig({
       { find: 'expo-haptics', replacement: path.resolve(__dirname, './src/shims/expo-haptics.ts') },
       { find: 'expo-speech', replacement: path.resolve(__dirname, './src/shims/expo-speech.ts') },
       { find: 'expo-audio', replacement: path.resolve(__dirname, './src/shims/expo-audio.ts') },
-      { find: '@', replacement: path.resolve(__dirname, './src') },
+      // Order matters: aliases are matched first-hit-wins, and a plain '@' entry matches
+      // any '@/...' path as a prefix — so the more specific '@/assets' must be listed
+      // before the general '@' catch-all, or every '@/assets/...' import silently
+      // resolves under src/ instead (a real image import there just 404s at build time,
+      // which is how this got caught) instead of the project-root assets/ folder.
       { find: '@/assets', replacement: path.resolve(__dirname, './assets') },
+      { find: '@', replacement: path.resolve(__dirname, './src') },
     ],
     extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js', '.json'],
   },

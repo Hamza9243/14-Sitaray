@@ -1,15 +1,7 @@
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import splashIconUri from '@/assets/images/splash-icon.png';
@@ -82,14 +74,18 @@ function LoadingStar({ index }: { index: number }) {
   const [lit, setLit] = useState(false);
   const scale = useSharedValue(1);
 
+  // A withRepeat(withSequence(...)) NESTED as a step inside an outer withSequence (the
+  // idle pulse this used to chain onto the pop-in spring) reliably crashed the Android
+  // System WebView's JS engine in a tight synchronous loop — "Cannot convert undefined
+  // or null to object", hundreds of times a millisecond — even though the exact same
+  // flat withRepeat(withSequence(...)) pattern (not nested inside another sequence)
+  // works fine elsewhere in the app (FloatingBackground's drifting stars). The crash
+  // silently prevented the whole splash overlay from ever rendering. Kept to just the
+  // one-shot pop-in spring — still reads as a lively, professional star-by-star reveal.
   useEffect(() => {
     const timer = setTimeout(() => {
       setLit(true);
-      scale.value = withSequence(
-        withSpring(1.4, { damping: 6, stiffness: 220 }),
-        withSpring(1, { damping: 9, stiffness: 180 }),
-        withRepeat(withSequence(withTiming(1.12, { duration: 900 }), withTiming(1, { duration: 900 })), -1, true)
-      );
+      scale.value = withSequence(withSpring(1.4, { damping: 6, stiffness: 220 }), withSpring(1, { damping: 9, stiffness: 180 }));
     }, index * STAGGER_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,7 +95,7 @@ function LoadingStar({ index }: { index: number }) {
 
   return (
     <Animated.View style={animatedStyle}>
-      <StarIcon size={15} fill={lit ? 1 : 0} />
+      <StarIcon size={15} fill={lit ? 1 : 0} gradientId={`splash-star-${index}`} />
     </Animated.View>
   );
 }
