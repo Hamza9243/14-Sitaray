@@ -2,7 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
 
 import { RewardDialog } from '@/components/RewardDialog';
 import { SequenceChallenge } from '@/components/stories/SequenceChallenge';
@@ -143,7 +142,7 @@ export function StoryReaderScreen() {
             <ProgressBar progress={(pageIndex + 1) / story.pages.length} label={`Page ${pageIndex + 1} of ${story.pages.length}`} />
           </View>
 
-          <Animated.View key={pageIndex} entering={SlideInRight.duration(280)} exiting={SlideOutLeft.duration(200)} style={{ flex: 1 }}>
+          <View key={pageIndex} style={{ flex: 1 }}>
             <StoryPageView
               page={story.pages[pageIndex]}
               pageIndex={pageIndex}
@@ -152,7 +151,7 @@ export function StoryReaderScreen() {
               rate={rate}
               onNarrationDone={() => {}}
             />
-          </Animated.View>
+          </View>
 
           <View style={{ flexDirection: 'row', gap: theme.spacing.sm, padding: theme.spacing.md }}>
             {pageIndex > 0 && <Button label="Back" variant="outline" onPress={goToPrevPage} style={{ flex: 1 }} />}
@@ -242,9 +241,18 @@ function IntroStep({
   onStart: () => void;
 }) {
   const { theme } = useTheme();
+  // Plain CSS fade-in, not Reanimated's `entering={FadeIn}`: react-native-reanimated's web
+  // layout-animation driver reliably gets stuck at its initial (invisible) state for this
+  // kind of late-mounted Animated.View, leaving the whole intro screen blank — the same
+  // underlying web-fallback issue documented on Dialog.tsx's entrance animation.
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return (
-    <Animated.View entering={FadeIn.duration(250)} style={{ flex: 1 }}>
+    <View style={{ flex: 1, opacity: entered ? 1 : 0, transition: 'opacity 250ms ease-out' } as object}>
       <LinearGradient colors={story.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
         <AppBar variant="transparent" onBack={onBack} titleColor={theme.colors.textInverse} />
 
@@ -288,7 +296,7 @@ function IntroStep({
           />
         </View>
       </LinearGradient>
-    </Animated.View>
+    </View>
   );
 }
 
