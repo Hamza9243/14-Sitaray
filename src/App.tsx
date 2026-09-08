@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ReminderNotificationBridge } from '@/components/ReminderNotificationBridge';
 import { AppThemeProvider } from '@/design-system/ThemeProvider';
 import { useAppFonts } from '@/design-system/fonts';
 import { AppRoutes } from '@/router';
@@ -34,6 +35,7 @@ export function App() {
           <ErrorBoundary>
             <AnimatedSplashOverlay />
           </ErrorBoundary>
+          <ReminderNotificationBridge />
           <AppRoutes />
         </AppThemeProvider>
       </SafeAreaProvider>

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { ACHIEVEMENTS, DUAS, QUIZ_QUESTIONS, STARS, STORIES } from '@/data';
+import { type CharacterId, characterForGender, type ReminderActivityType } from '@/data/characters';
 
 function todayString() {
   return new Date().toISOString().slice(0, 10);
@@ -29,8 +30,25 @@ const DEFAULT_STORY_PROGRESS: StoryProgressEntry = {
   completedAt: null,
 };
 
+export type ReminderStatus = 'pending' | 'completed' | 'dismissed';
+
+export interface Reminder {
+  id: number;
+  type: ReminderActivityType;
+  title: string;
+  /** ISO datetime string — when the character should "call". */
+  scheduledAt: string;
+  /** Derived from childGender at creation time, not chosen manually — see characterForGender. */
+  character: CharacterId;
+  enabled: boolean;
+  status: ReminderStatus;
+  createdAt: string;
+}
+
 interface AppState {
   childName: string;
+  /** Unset until the parent picks one in Profile — drives Ali/Sakina character selection. */
+  childGender: 'boy' | 'girl' | null;
   xp: number;
   streakCount: number;
   lastOpenedDate: string | null;
@@ -46,10 +64,19 @@ interface AppState {
   certificates: Record<string, { childName: string; earnedAt: string }>;
   /** Per-story reader progress — resumable page position + quiz/activity beats, keyed by story id. */
   storyProgress: Record<string, StoryProgressEntry>;
+  /** Character Call Reminders — parent-created, deliver a fake incoming call from Ali/Sakina. */
+  reminders: Reminder[];
+  nextReminderId: number;
   hasHydrated: boolean;
   journeyCelebrationShown: boolean;
 
   setChildName: (name: string) => void;
+  setChildGender: (gender: 'boy' | 'girl') => void;
+  /** Creates a reminder with its character auto-derived from childGender — never chosen manually. */
+  addReminder: (input: { type: ReminderActivityType; title: string; scheduledAt: string; enabled?: boolean }) => Reminder;
+  updateReminder: (id: number, patch: Partial<Pick<Reminder, 'type' | 'title' | 'scheduledAt' | 'enabled'>>) => void;
+  deleteReminder: (id: number) => void;
+  setReminderStatus: (id: number, status: ReminderStatus) => void;
   recordAppOpen: () => void;
   toggleFavoriteDua: (id: string) => void;
   completeDua: (id: string) => { xpGained: number; alreadyDone: boolean };
@@ -76,6 +103,9 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       childName: 'Little Star',
+      childGender: null,
+      reminders: [],
+      nextReminderId: 1,
       xp: 0,
       streakCount: 0,
       lastOpenedDate: null,
@@ -92,6 +122,38 @@ export const useAppStore = create<AppState>()(
       journeyCelebrationShown: false,
 
       setChildName: (name) => set({ childName: name }),
+      setChildGender: (gender) => set({ childGender: gender }),
+
+      addReminder: (input) => {
+        const { reminders, nextReminderId, childGender } = get();
+        const reminder: Reminder = {
+          id: nextReminderId,
+          type: input.type,
+          title: input.title,
+          scheduledAt: input.scheduledAt,
+          character: characterForGender(childGender).id,
+          enabled: input.enabled ?? true,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+        set({ reminders: [...reminders, reminder], nextReminderId: nextReminderId + 1 });
+        return reminder;
+      },
+
+      updateReminder: (id, patch) => {
+        const { reminders } = get();
+        set({ reminders: reminders.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
+      },
+
+      deleteReminder: (id) => {
+        const { reminders } = get();
+        set({ reminders: reminders.filter((r) => r.id !== id) });
+      },
+
+      setReminderStatus: (id, status) => {
+        const { reminders } = get();
+        set({ reminders: reminders.map((r) => (r.id === id ? { ...r, status } : r)) });
+      },
       markJourneyCelebrationShown: () => set({ journeyCelebrationShown: true }),
       toggleFavoriteDua: (id) => {
         const { favoriteDuaIds } = get();

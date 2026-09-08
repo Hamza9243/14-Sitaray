@@ -7,9 +7,11 @@ import { KindnessMissionsScreen } from '@/screens/games/KindnessMissionsScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ImamAliActivityScreen } from '@/screens/imamAli/ImamAliActivityScreen';
 import { ImamAliHubScreen } from '@/screens/imamAli/ImamAliHubScreen';
+import { IncomingCallScreen } from '@/screens/IncomingCallScreen';
 import { LearnScreen } from '@/screens/LearnScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { QuizScreen } from '@/screens/QuizScreen';
+import { RemindersScreen } from '@/screens/RemindersScreen';
 import { RewardsScreen } from '@/screens/RewardsScreen';
 import { StarsCollectionScreen } from '@/screens/StarsCollectionScreen';
 import { StoriesScreen } from '@/screens/StoriesScreen';
@@ -42,6 +44,8 @@ export function AppRoutes() {
       <Route path="/learn/quiz" element={<QuizScreen />} />
       <Route path="/learn/stories" element={<StoriesScreen />} />
       <Route path="/learn/stories/:storyId" element={<StoryReaderScreen />} />
+      <Route path="/reminders" element={<RemindersScreen />} />
+      <Route path="/incoming-call/:reminderId" element={<IncomingCallScreen />} />
     </Routes>
   );
 }

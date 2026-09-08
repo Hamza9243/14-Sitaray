@@ -1,17 +1,41 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ScrollView, TextInput, View } from 'react-native';
 
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { AppBar } from '@/components/ui/AppBar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Dialog } from '@/components/ui/Dialog';
 import { Text } from '@/components/ui/Text';
 import { ACHIEVEMENTS } from '@/data';
+import { characterForGender } from '@/data/characters';
 import { TOTAL_STARS } from '@/data/stars';
 import { useTheme } from '@/design-system/useTheme';
 import { getEarnedAchievementIds, getUnlockedStarIds, useAppStore } from '@/hooks/useAppStore';
+
+function GenderPill({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const { theme } = useTheme();
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      scaleTo={0.96}
+      style={{
+        flex: 1,
+        paddingVertical: theme.spacing.sm,
+        borderRadius: theme.radii.md,
+        alignItems: 'center',
+        backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSunken,
+      }}
+    >
+      <Text variant="button" style={{ color: active ? theme.colors.textOnBrand : theme.colors.textSecondary }}>
+        {label}
+      </Text>
+    </AnimatedPressable>
+  );
+}
 
 function StatTile({ label, value }: { label: string; value: string | number }) {
   const { theme } = useTheme();
@@ -27,8 +51,11 @@ function StatTile({ label, value }: { label: string; value: string | number }) {
 
 export function ProfileScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const childName = useAppStore((s) => s.childName);
   const setChildName = useAppStore((s) => s.setChildName);
+  const childGender = useAppStore((s) => s.childGender);
+  const setChildGender = useAppStore((s) => s.setChildGender);
   const xp = useAppStore((s) => s.xp);
   const streakCount = useAppStore((s) => s.streakCount);
   const completedDuaIds = useAppStore((s) => s.completedDuaIds);
@@ -38,6 +65,7 @@ export function ProfileScreen() {
 
   const [editVisible, setEditVisible] = useState(false);
   const [draftName, setDraftName] = useState(childName);
+  const [draftGender, setDraftGender] = useState(childGender);
 
   const unlockedCount = getUnlockedStarIds(xp).length;
   const earnedAchievements = getEarnedAchievementIds({
@@ -72,6 +100,7 @@ export function ProfileScreen() {
               accessibilityLabel="Edit name"
               onPress={() => {
                 setDraftName(childName);
+                setDraftGender(childGender);
                 setEditVisible(true);
               }}
               leftIcon={<Ionicons name="pencil" size={16} color={theme.colors.textSecondary} />}
@@ -80,6 +109,30 @@ export function ProfileScreen() {
           <Text variant="bodySmall" color="textSecondary">
             {`${unlockedCount} of ${TOTAL_STARS} Stars collected`}
           </Text>
+        </Card>
+
+        <Card variant="raised" onPress={() => router.push('/reminders')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: theme.radii.full,
+                backgroundColor: theme.colors.brandSoft,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="call" size={22} color={theme.colors.brandStrong} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text variant="title">Character Call Reminders</Text>
+              <Text variant="bodySmall" color="textSecondary">
+                {`Schedule a fun call from ${characterForGender(childGender).name}`}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </View>
         </Card>
 
         <Card variant="raised">
@@ -128,9 +181,16 @@ export function ProfileScreen() {
       <Dialog
         visible={editVisible}
         onRequestClose={() => setEditVisible(false)}
-        title="Edit Your Name"
+        title="Edit Your Profile"
         actions={[
-          { label: 'Save', onPress: () => { setChildName(draftName.trim() || childName); setEditVisible(false); } },
+          {
+            label: 'Save',
+            onPress: () => {
+              setChildName(draftName.trim() || childName);
+              if (draftGender) setChildGender(draftGender);
+              setEditVisible(false);
+            },
+          },
           { label: 'Cancel', variant: 'ghost', onPress: () => setEditVisible(false) },
         ]}
       >
@@ -151,6 +211,14 @@ export function ProfileScreen() {
             color: theme.colors.textPrimary,
           }}
         />
+
+        <Text variant="label" color="textSecondary" style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.xs }}>
+          {`PROFILE (used to pick ${characterForGender(draftGender).name} for call reminders)`}
+        </Text>
+        <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+          <GenderPill label="Boy" active={draftGender === 'boy'} onPress={() => setDraftGender('boy')} />
+          <GenderPill label="Girl" active={draftGender === 'girl'} onPress={() => setDraftGender('girl')} />
+        </View>
       </Dialog>
     </View>
   );

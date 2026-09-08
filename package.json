@@ -16,6 +16,7 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/haptics": "^7.0.3",
+    "@capacitor/local-notifications": "^7.0.7",
     "@capacitor/splash-screen": "^7.0.5",
     "@react-native-async-storage/async-storage": "2.2.0",
     "react": "19.2.3",
