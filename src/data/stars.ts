@@ -1,7 +1,7 @@
 import { gradients } from '@/design-system/tokens/colors';
 import type { StarDefinition } from '@/types/content';
 
-const XP_PER_STAR = 120;
+const XP_PER_STAR = 100;
 
 const cycle = [
   gradients.starBurst,
@@ -27,9 +27,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him and his family',
     lessonTitle: 'Kindness & Mercy',
     lessonSummary: 'Even to those who were unkind to him, he answered with patience and a gentle heart.',
-    unlockRequirement: 'Begin your journey',
     xpThreshold: XP_PER_STAR * 1,
-    rewardLabel: '+50 XP · Starter Badge',
+    rewardLabel: 'Starter Badge',
     gradient: cycle[0],
   },
   {
@@ -38,9 +37,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Justice & Courage',
     lessonSummary: 'He stood for what was right, even when it was hard, and treated everyone fairly.',
-    unlockRequirement: 'Complete 2 Duas',
     xpThreshold: XP_PER_STAR * 2,
-    rewardLabel: '+50 XP · Brave Heart Badge',
+    rewardLabel: 'Brave Heart Badge',
     gradient: cycle[1],
   },
   {
@@ -49,9 +47,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon her',
     lessonTitle: 'Patience & Generosity',
     lessonSummary: 'She gave to others even when she had very little, and never lost her patience.',
-    unlockRequirement: 'Finish a Story',
     xpThreshold: XP_PER_STAR * 3,
-    rewardLabel: '+50 XP · Giving Heart Badge',
+    rewardLabel: 'Giving Heart Badge',
     gradient: cycle[2],
   },
   {
@@ -60,9 +57,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Peace & Forgiveness',
     lessonSummary: 'He chose peace over conflict and forgave people who wronged him.',
-    unlockRequirement: 'Score well on a Quiz',
     xpThreshold: XP_PER_STAR * 4,
-    rewardLabel: '+50 XP · Peacemaker Badge',
+    rewardLabel: 'Peacemaker Badge',
     gradient: cycle[3],
   },
   {
@@ -71,9 +67,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Truth & Sacrifice',
     lessonSummary: 'He stood for the truth no matter the cost, teaching us that standing up for what is right matters most.',
-    unlockRequirement: 'Reach a 3-day streak',
     xpThreshold: XP_PER_STAR * 5,
-    rewardLabel: '+50 XP · Truth Seeker Badge',
+    rewardLabel: 'Truth Seeker Badge',
     gradient: cycle[4],
   },
   {
@@ -82,9 +77,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Gratitude & Worship',
     lessonSummary: 'He thanked Allah in every moment, teaching us to notice our blessings.',
-    unlockRequirement: 'Complete 4 Duas',
     xpThreshold: XP_PER_STAR * 6,
-    rewardLabel: '+50 XP · Grateful Heart Badge',
+    rewardLabel: 'Grateful Heart Badge',
     gradient: cycle[5],
   },
   {
@@ -93,9 +87,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Knowledge & Wisdom',
     lessonSummary: 'He loved learning and shared his knowledge generously with others.',
-    unlockRequirement: 'Finish 2 Stories',
     xpThreshold: XP_PER_STAR * 7,
-    rewardLabel: '+50 XP · Wise Owl Badge',
+    rewardLabel: 'Wise Owl Badge',
     gradient: cycle[0],
   },
   {
@@ -104,9 +97,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Curiosity & Learning',
     lessonSummary: 'He taught that asking questions is one of the best ways to learn.',
-    unlockRequirement: 'Complete 3 Quizzes',
     xpThreshold: XP_PER_STAR * 8,
-    rewardLabel: '+50 XP · Curious Mind Badge',
+    rewardLabel: 'Curious Mind Badge',
     gradient: cycle[1],
   },
   {
@@ -115,9 +107,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Patience & Calm',
     lessonSummary: 'He stayed calm and patient even during the hardest times.',
-    unlockRequirement: 'Reach a 7-day streak',
     xpThreshold: XP_PER_STAR * 9,
-    rewardLabel: '+50 XP · Calm Heart Badge',
+    rewardLabel: 'Calm Heart Badge',
     gradient: cycle[2],
   },
   {
@@ -126,9 +117,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Hospitality & Respect',
     lessonSummary: 'He welcomed everyone with warmth, no matter who they were.',
-    unlockRequirement: 'Complete 6 Duas',
     xpThreshold: XP_PER_STAR * 10,
-    rewardLabel: '+50 XP · Welcoming Heart Badge',
+    rewardLabel: 'Welcoming Heart Badge',
     gradient: cycle[3],
   },
   {
@@ -137,9 +127,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Confidence & Faith',
     lessonSummary: 'Even from a young age, he showed that wisdom is not only for grown-ups.',
-    unlockRequirement: 'Finish 4 Stories',
     xpThreshold: XP_PER_STAR * 11,
-    rewardLabel: '+50 XP · Bright Star Badge',
+    rewardLabel: 'Bright Star Badge',
     gradient: cycle[4],
   },
   {
@@ -148,9 +137,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Steadfastness',
     lessonSummary: 'He stayed true to his values even in difficult circumstances.',
-    unlockRequirement: 'Complete 6 Quizzes',
     xpThreshold: XP_PER_STAR * 12,
-    rewardLabel: '+50 XP · Steady Heart Badge',
+    rewardLabel: 'Steady Heart Badge',
     gradient: cycle[5],
   },
   {
@@ -159,9 +147,8 @@ export const STARS: StarDefinition[] = [
     honorific: 'Peace be upon him',
     lessonTitle: 'Hope & Devotion',
     lessonSummary: 'He held onto hope and devotion, even while facing great hardship.',
-    unlockRequirement: 'Reach a 14-day streak',
     xpThreshold: XP_PER_STAR * 13,
-    rewardLabel: '+50 XP · Hopeful Heart Badge',
+    rewardLabel: 'Hopeful Heart Badge',
     gradient: cycle[0],
   },
   {
@@ -170,7 +157,6 @@ export const STARS: StarDefinition[] = [
     honorific: 'May Allah hasten his reappearance',
     lessonTitle: 'Hope for the Future',
     lessonSummary: 'He reminds us to keep hope alive and to work every day to become better.',
-    unlockRequirement: 'Complete your full journey',
     xpThreshold: XP_PER_STAR * 14,
     rewardLabel: 'Journey Complete Badge',
     gradient: cycle[1],

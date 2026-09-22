@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { useStars } from '@/cms/hooks';
 import { RewardDialog } from '@/components/RewardDialog';
 import { AppBar } from '@/components/ui/AppBar';
 import { CharacterCard } from '@/components/ui/CharacterCard';
@@ -12,7 +13,8 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
 import { IMAM_ALI_HUB } from '@/data/games/imamAli';
 import { KINDNESS_MISSIONS, KINDNESS_MISSIONS_GAME_ID } from '@/data/games/kindnessMissions';
-import { STARS, TOTAL_STARS } from '@/data/stars';
+import { STAR_GAMES_BY_STAR, starGameId } from '@/data/games/starGames';
+import { TOTAL_STARS } from '@/data/stars';
 import { useTheme } from '@/design-system/useTheme';
 import { getCompletedActivityIds, getUnlockedStarIds, useAppStore } from '@/hooks/useAppStore';
 import type { StarDefinition } from '@/types/content';
@@ -20,6 +22,7 @@ import type { StarDefinition } from '@/types/content';
 export function StarsCollectionScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const stars = useStars();
   const xp = useAppStore((s) => s.xp);
   const completedGameIds = useAppStore((s) => s.completedGameIds);
   const activityCompletions = useAppStore((s) => s.activityCompletions);
@@ -37,6 +40,9 @@ export function StarsCollectionScreen() {
   const gameCompleted = availableGame ? completedGameIds.includes(KINDNESS_MISSIONS_GAME_ID) : false;
 
   const availableHub = selectedStar && selectedUnlocked && selectedStar.id === IMAM_ALI_HUB.starId ? IMAM_ALI_HUB : null;
+  const starGame = selectedStar && selectedUnlocked ? (STAR_GAMES_BY_STAR[selectedStar.id] ?? null) : null;
+  const starGameCompleted = starGame ? completedGameIds.includes(starGameId(starGame.starId)) : false;
+
   const hubCompletedCount = availableHub ? getCompletedActivityIds(activityCompletions, availableHub.id).length : 0;
 
   useEffect(() => {
@@ -69,12 +75,13 @@ export function StarsCollectionScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, justifyContent: 'space-between' }}>
-          {STARS.map((star) => {
+          {stars.map((star) => {
             const unlocked = unlockedIds.includes(star.id);
             return (
               <CharacterCard
                 key={star.id}
                 title={star.name}
+                image={star.imageUrl ? { uri: star.imageUrl } : undefined}
                 subtitle={star.lessonTitle}
                 badgeLabel={unlocked ? `Star ${star.id}` : undefined}
                 locked={!unlocked}
@@ -112,7 +119,19 @@ export function StarsCollectionScreen() {
                   },
                   { label: 'Close', onPress: () => setSelectedStar(null), variant: 'secondary' },
                 ]
-              : [{ label: 'Close', onPress: () => setSelectedStar(null), variant: 'secondary' }]
+              : starGame
+                ? [
+                    {
+                      label: starGameCompleted ? `Play ${starGame.title} Again` : `Play ${starGame.title}`,
+                      onPress: () => {
+                        const id = starGame.starId;
+                        setSelectedStar(null);
+                        router.push(`/games/star/${id}`);
+                      },
+                    },
+                    { label: 'Close', onPress: () => setSelectedStar(null), variant: 'secondary' },
+                  ]
+                : [{ label: 'Close', onPress: () => setSelectedStar(null), variant: 'secondary' }]
         }
       >
         {selectedStar && (
@@ -135,7 +154,7 @@ export function StarsCollectionScreen() {
               }}
             >
               <Text variant="bodySmall" color={selectedUnlocked ? 'success' : 'textSecondary'} style={{ textAlign: 'center' }}>
-                {selectedUnlocked ? `Unlocked · ${selectedStar.rewardLabel}` : `Locked · ${selectedStar.unlockRequirement}`}
+                {selectedUnlocked ? `Unlocked · ${selectedStar.rewardLabel}` : `Locked · Earn ${selectedStar.xpThreshold} XP to unlock (you have ${xp})`}
               </Text>
             </View>
 
@@ -144,6 +163,15 @@ export function StarsCollectionScreen() {
                 <Emoji size={14}>🎮</Emoji>
                 <Text variant="caption" color="brandStrong" style={{ textAlign: 'center' }}>
                   {gameCompleted ? `${availableGame.title} completed!` : `${availableGame.title} available!`}
+                </Text>
+              </View>
+            )}
+
+            {starGame && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: theme.spacing.xs }}>
+                <Emoji size={14}>🎮</Emoji>
+                <Text variant="caption" color="brandStrong" style={{ textAlign: 'center' }}>
+                  {starGameCompleted ? `${starGame.title} completed!` : `${starGame.title} · +${starGame.xpReward} XP`}
                 </Text>
               </View>
             )}

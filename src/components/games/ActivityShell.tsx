@@ -18,6 +18,9 @@ export interface ActivityShellProps {
   totalActivities: number;
   /** True once the activity inside has called its onComplete — shows the completion celebration. */
   showCompletion: boolean;
+  /** XP just earned (0 on a replay) and whether this completion earned the hub certificate. */
+  completionXp?: number;
+  certificateEarned?: boolean;
   onExit: () => void;
   onContinueAfterCompletion: () => void;
   children: ReactNode;
@@ -35,6 +38,8 @@ export function ActivityShell({
   activityIndex,
   totalActivities,
   showCompletion,
+  completionXp,
+  certificateEarned,
   onExit,
   onContinueAfterCompletion,
   children,
@@ -143,6 +148,16 @@ export function ActivityShell({
           <Text variant="bodyLarge" style={{ color: theme.palette.night[200], textAlign: 'center', marginTop: theme.spacing.xs }}>
             {activity.title}
           </Text>
+          {completionXp !== undefined && (
+            <Text variant="title" style={{ color: theme.palette.star[400], marginTop: theme.spacing.md }}>
+              {completionXp > 0 ? `+${completionXp} XP` : "Already completed — no extra XP"}
+            </Text>
+          )}
+          {certificateEarned && (
+            <Text variant="bodyLarge" style={{ color: theme.palette.neutral[50], textAlign: "center", marginTop: theme.spacing.sm }}>
+              🎓 You earned your Imam Ali certificate!
+            </Text>
+          )}
           <Button label="Continue" size="lg" onPress={onContinueAfterCompletion} style={{ marginTop: theme.spacing.xl }} />
         </View>
       )}

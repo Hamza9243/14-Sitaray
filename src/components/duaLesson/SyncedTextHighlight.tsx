@@ -41,6 +41,12 @@ export interface SyncedTextHighlightProps {
   /** Playback rate — 1 is normal, <1 slower, >1 faster. */
   rate?: number;
   onDone?: () => void;
+  /** Latin-script layout only: lay words out right-to-left (Urdu / Farsi text). */
+  rtl?: boolean;
+  /** Overrides the text-to-speech locale, e.g. 'ur-PK'. */
+  speechLang?: string;
+  /** Hides the device-voice play button (a recorded narration is playing instead). */
+  hideControls?: boolean;
 }
 
 /**
@@ -52,7 +58,16 @@ export interface SyncedTextHighlightProps {
  * system voices — there's no recorded reciter audio backing this, it's a
  * synthesized voice reading the text, not authentic Qira'at when used for duas.
  */
-export function SyncedTextHighlight({ text, script = 'arabic', autoPlay, rate = 1, onDone }: SyncedTextHighlightProps) {
+export function SyncedTextHighlight({
+  text,
+  script = 'arabic',
+  autoPlay,
+  rate = 1,
+  onDone,
+  rtl = false,
+  speechLang,
+  hideControls = false,
+}: SyncedTextHighlightProps) {
   const { theme } = useTheme();
   const words = useMemo(() => splitWithRanges(text), [text]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -64,7 +79,7 @@ export function SyncedTextHighlight({ text, script = 'arabic', autoPlay, rate = 
     setSpeaking(true);
     setActiveIndex(-1);
     Speech.speak(text, {
-      language: script === 'arabic' ? 'ar-SA' : 'en-US',
+      language: speechLang ?? (script === 'arabic' ? 'ar-SA' : 'en-US'),
       rate,
       onBoundary: (event: BoundaryEvent) => {
         const { charIndex } = event;
@@ -101,39 +116,41 @@ export function SyncedTextHighlight({ text, script = 'arabic', autoPlay, rate = 
     <View style={{ alignItems: 'center', gap: theme.spacing.md }}>
       <View
         style={{
-          flexDirection: script === 'arabic' ? 'row-reverse' : 'row',
+          flexDirection: script === 'arabic' || rtl ? 'row-reverse' : 'row',
           flexWrap: 'wrap',
           justifyContent: 'center',
           gap: 8,
         }}
       >
         {words.map((w, index) => (
-          <HighlightWord key={`${w.word}-${index}`} word={w.word} script={script} active={index === activeIndex} />
+          <HighlightWord key={`${w.word}-${index}`} word={w.word} script={script} rtl={rtl} active={index === activeIndex} />
         ))}
       </View>
 
-      <AnimatedPressable
-        onPress={play}
-        scaleTo={0.9}
-        accessibilityRole="button"
-        accessibilityLabel={speaking ? 'Replay' : 'Play'}
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: theme.radii.full,
-          backgroundColor: theme.colors.brand,
-          alignItems: 'center',
-          justifyContent: 'center',
-          ...theme.shadow('md', theme.palette.star[600]),
-        }}
-      >
-        <Ionicons name={speaking ? 'volume-high' : 'play'} size={28} color={theme.colors.textOnBrand} />
-      </AnimatedPressable>
+      {!hideControls && (
+        <AnimatedPressable
+          onPress={play}
+          scaleTo={0.9}
+          accessibilityRole="button"
+          accessibilityLabel={speaking ? 'Replay' : 'Play'}
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: theme.radii.full,
+            backgroundColor: theme.colors.brand,
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...theme.shadow('md', theme.palette.star[600]),
+          }}
+        >
+          <Ionicons name={speaking ? 'volume-high' : 'play'} size={28} color={theme.colors.textOnBrand} />
+        </AnimatedPressable>
+      )}
     </View>
   );
 }
 
-function HighlightWord({ word, script, active }: { word: string; script: 'arabic' | 'latin'; active: boolean }) {
+function HighlightWord({ word, script, rtl, active }: { word: string; script: 'arabic' | 'latin'; rtl: boolean; active: boolean }) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
 
@@ -161,7 +178,10 @@ function HighlightWord({ word, script, active }: { word: string; script: 'arabic
           {word}
         </ArabicText>
       ) : (
-        <Text variant="h3" style={{ color: active ? theme.colors.textOnBrand : theme.colors.textPrimary }}>
+        <Text
+          variant="h3"
+          style={{ color: active ? theme.colors.textOnBrand : theme.colors.textPrimary, writingDirection: rtl ? 'rtl' : undefined }}
+        >
           {word}
         </Text>
       )}

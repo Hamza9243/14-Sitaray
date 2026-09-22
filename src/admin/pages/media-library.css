@@ -1,0 +1,226 @@
+.ml-toolbar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ml-view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.ml-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ml-view-btn.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ml-view-btn:focus-visible,
+.ml-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ml-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+  padding: 16px;
+}
+.ml-grid.is-loading {
+  opacity: 0.6;
+}
+.ml-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  min-width: 0;
+}
+.ml-tile:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ml-tile .ml-thumb {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+  margin-bottom: 6px;
+}
+.ml-tile-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ml-tile-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ml-tile-skeleton {
+  cursor: default;
+  gap: 8px;
+}
+.ml-skel-img {
+  aspect-ratio: 1;
+  height: auto;
+}
+.ml-skel-short {
+  width: 60%;
+}
+.ml-thumb {
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface-2);
+  display: block;
+  flex: 0 0 auto;
+}
+.ml-thumb-icon {
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ml-drawer-title {
+  display: block;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ml-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 120px;
+}
+.ml-preview .player {
+  width: 100%;
+}
+.ml-preview-img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.ml-preview-video {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+}
+.ml-lottie-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  padding: 16px;
+  color: var(--accent);
+}
+.ml-meta {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+.ml-meta dt {
+  color: var(--muted);
+}
+.ml-meta dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ml-url {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ml-url .input {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+}
+.ml-usage h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ml-usage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.ml-usage-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ml-usage-list li:last-child {
+  border-bottom: 0;
+}
+.ml-usage-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ml-danger {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+@media (max-width: 1024px) {
+  .ml-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+}
+.overlay-right .drawer-body {
+  flex: 1;
+  min-height: 0;
+}
+.ml-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ml-form .input,
+.ml-form .select {
+  width: 100%;
+}
+.overlay-right {
+  grid-template-rows: minmax(0, 1fr);
+}

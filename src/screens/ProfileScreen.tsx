@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ScrollView, TextInput, View } from 'react-native';
+import { ScrollView, TextInput, View, type ViewStyle } from 'react-native';
 
+import { useLanguages } from '@/cms/hooks';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { AppBar } from '@/components/ui/AppBar';
 import { Button } from '@/components/ui/Button';
@@ -14,9 +15,10 @@ import { ACHIEVEMENTS } from '@/data';
 import { characterForGender } from '@/data/characters';
 import { TOTAL_STARS } from '@/data/stars';
 import { useTheme } from '@/design-system/useTheme';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { getEarnedAchievementIds, getUnlockedStarIds, useAppStore } from '@/hooks/useAppStore';
 
-function GenderPill({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function GenderPill({ label, active, onPress, style }: { label: string; active: boolean; onPress: () => void; style?: ViewStyle }) {
   const { theme } = useTheme();
   return (
     <AnimatedPressable
@@ -28,6 +30,7 @@ function GenderPill({ label, active, onPress }: { label: string; active: boolean
         borderRadius: theme.radii.md,
         alignItems: 'center',
         backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSunken,
+        ...style,
       }}
     >
       <Text variant="button" style={{ color: active ? theme.colors.textOnBrand : theme.colors.textSecondary }}>
@@ -54,18 +57,26 @@ export function ProfileScreen() {
   const router = useRouter();
   const childName = useAppStore((s) => s.childName);
   const setChildName = useAppStore((s) => s.setChildName);
+  const childAge = useAppStore((s) => s.childAge);
+  const setChildAge = useAppStore((s) => s.setChildAge);
   const childGender = useAppStore((s) => s.childGender);
   const setChildGender = useAppStore((s) => s.setChildGender);
+  const language = useAppStore((s) => s.language);
+  const setLanguage = useAppStore((s) => s.setLanguage);
+  const languages = useLanguages();
   const xp = useAppStore((s) => s.xp);
   const streakCount = useAppStore((s) => s.streakCount);
   const completedDuaIds = useAppStore((s) => s.completedDuaIds);
   const completedQuizIds = useAppStore((s) => s.completedQuizIds);
   const completedStoryIds = useAppStore((s) => s.completedStoryIds);
   const completedGameIds = useAppStore((s) => s.completedGameIds);
+  const certificates = useAppStore((s) => s.certificates);
 
   const [editVisible, setEditVisible] = useState(false);
   const [draftName, setDraftName] = useState(childName);
+  const [draftAge, setDraftAge] = useState(childAge === null ? '' : String(childAge));
   const [draftGender, setDraftGender] = useState(childGender);
+  const [draftLanguage, setDraftLanguage] = useState(language);
 
   const unlockedCount = getUnlockedStarIds(xp).length;
   const earnedAchievements = getEarnedAchievementIds({
@@ -75,6 +86,7 @@ export function ProfileScreen() {
     completedQuizIds,
     completedStoryIds,
     completedGameIds,
+    certificates,
   });
 
   return (
@@ -101,6 +113,8 @@ export function ProfileScreen() {
               onPress={() => {
                 setDraftName(childName);
                 setDraftGender(childGender);
+                setDraftLanguage(language);
+                setDraftAge(childAge === null ? '' : String(childAge));
                 setEditVisible(true);
               }}
               leftIcon={<Ionicons name="pencil" size={16} color={theme.colors.textSecondary} />}
@@ -187,7 +201,10 @@ export function ProfileScreen() {
             label: 'Save',
             onPress: () => {
               setChildName(draftName.trim() || childName);
+              const parsedAge = Number.parseInt(draftAge, 10);
+              setChildAge(Number.isFinite(parsedAge) ? Math.min(14, Math.max(3, parsedAge)) : null);
               if (draftGender) setChildGender(draftGender);
+              if (draftLanguage !== language) setLanguage(draftLanguage);
               setEditVisible(false);
             },
           },
@@ -212,6 +229,25 @@ export function ProfileScreen() {
           }}
         />
 
+        <TextInput
+          value={draftAge}
+          onChangeText={(t) => setDraftAge(t.replace(/[^0-9]/g, '').slice(0, 2))}
+          placeholder="Age (3-14)"
+          keyboardType="number-pad"
+          accessibilityLabel="Age"
+          style={{
+            marginTop: theme.spacing.sm,
+            borderWidth: 2,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radii.md,
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.sm,
+            fontFamily: theme.fontFamily.body,
+            fontSize: 16,
+            color: theme.colors.textPrimary,
+          }}
+        />
+
         <Text variant="label" color="textSecondary" style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.xs }}>
           {`PROFILE (used to pick ${characterForGender(draftGender).name} for call reminders)`}
         </Text>
@@ -219,6 +255,25 @@ export function ProfileScreen() {
           <GenderPill label="Boy" active={draftGender === 'boy'} onPress={() => setDraftGender('boy')} />
           <GenderPill label="Girl" active={draftGender === 'girl'} onPress={() => setDraftGender('girl')} />
         </View>
+
+        {isSupabaseConfigured && (
+          <>
+            <Text variant="label" color="textSecondary" style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.xs }}>
+              LANGUAGE
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+              {languages.map((l) => (
+                <GenderPill
+                  key={l.code}
+                  label={l.nativeName}
+                  active={draftLanguage === l.code}
+                  onPress={() => setDraftLanguage(l.code)}
+                  style={{ flex: undefined, flexGrow: 1, flexBasis: '30%' }}
+                />
+              ))}
+            </View>
+          </>
+        )}
       </Dialog>
     </View>
   );

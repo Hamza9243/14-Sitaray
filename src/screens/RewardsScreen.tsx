@@ -16,6 +16,7 @@ export function RewardsScreen() {
   const completedQuizIds = useAppStore((s) => s.completedQuizIds);
   const completedStoryIds = useAppStore((s) => s.completedStoryIds);
   const completedGameIds = useAppStore((s) => s.completedGameIds);
+  const certificates = useAppStore((s) => s.certificates);
 
   const earnedIds = getEarnedAchievementIds({
     xp,
@@ -24,6 +25,7 @@ export function RewardsScreen() {
     completedQuizIds,
     completedStoryIds,
     completedGameIds,
+    certificates,
   });
 
   return (

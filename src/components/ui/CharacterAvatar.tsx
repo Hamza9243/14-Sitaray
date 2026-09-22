@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -49,11 +50,16 @@ export function CharacterAvatar({ character, size = 140, ringing = false }: Char
             width: size,
             height: size,
             borderRadius: size / 2,
+            overflow: 'hidden',
           },
           theme.shadow('lg'),
         ]}
       >
-        <Emoji size={size * 0.5}>{character.emoji}</Emoji>
+        {character.imageUrl ? (
+          <Image source={{ uri: character.imageUrl }} style={{ width: size, height: size }} contentFit="cover" accessibilityLabel={character.name} />
+        ) : (
+          <Emoji size={size * 0.5}>{character.emoji}</Emoji>
+        )}
       </LinearGradient>
     </View>
   );

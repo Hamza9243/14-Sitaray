@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
+import { useDirStyle } from '@/cms/hooks';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBadge } from '@/components/ui/Card';
 import { Emoji } from '@/components/ui/Emoji';
@@ -24,6 +26,7 @@ export interface StoryCardProps {
 /** A premium storybook tile: cover illustration, difficulty + time, resumable progress, and a lock state. */
 export function StoryCard({ story, progress, locked, onPress }: StoryCardProps) {
   const { theme } = useTheme();
+  const dir = useDirStyle();
   const completed = progress.completedAt !== null;
   const fraction = getStoryProgressFraction(story.pages.length, progress);
   const started = fraction > 0 && !completed;
@@ -36,9 +39,13 @@ export function StoryCard({ story, progress, locked, onPress }: StoryCardProps) 
           colors={story.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ borderRadius: theme.radii.md, height: 132, alignItems: 'center', justifyContent: 'center' }}
+          style={{ borderRadius: theme.radii.md, height: 132, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
         >
-          <Emoji size={56}>{story.coverEmoji}</Emoji>
+          {story.coverImageUrl ? (
+            <Image source={{ uri: story.coverImageUrl }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={story.title} />
+          ) : (
+            <Emoji size={56}>{story.coverEmoji}</Emoji>
+          )}
         </LinearGradient>
 
         <View style={{ position: 'absolute', top: theme.spacing.xs, left: theme.spacing.xs }}>
@@ -70,7 +77,7 @@ export function StoryCard({ story, progress, locked, onPress }: StoryCardProps) 
       </View>
 
       <View style={{ padding: theme.spacing.sm, paddingBottom: theme.spacing.xs, gap: 6 }}>
-        <Text variant="title" numberOfLines={1}>
+        <Text variant="title" numberOfLines={1} style={dir(story.title)}>
           {story.title}
         </Text>
 
@@ -81,7 +88,7 @@ export function StoryCard({ story, progress, locked, onPress }: StoryCardProps) 
           </Text>
         </View>
 
-        <Text variant="bodySmall" color="textSecondary" numberOfLines={2}>
+        <Text variant="bodySmall" color="textSecondary" numberOfLines={2} style={dir(story.summary)}>
           {story.summary}
         </Text>
 

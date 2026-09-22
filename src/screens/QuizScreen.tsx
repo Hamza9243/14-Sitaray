@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { useDirStyle, useQuizQuestions } from '@/cms/hooks';
 import { RewardDialog } from '@/components/RewardDialog';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { AppBar } from '@/components/ui/AppBar';
@@ -10,7 +11,6 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
-import { QUIZ_QUESTIONS } from '@/data';
 import { useTheme } from '@/design-system/useTheme';
 import { getNewlyUnlockedStars, useAppStore } from '@/hooks/useAppStore';
 import type { StarDefinition } from '@/types/content';
@@ -18,17 +18,24 @@ import type { StarDefinition } from '@/types/content';
 export function QuizScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const questions = useQuizQuestions();
+  const dir = useDirStyle();
   const answerQuizCorrect = useAppStore((s) => s.answerQuizCorrect);
   const completedQuizIds = useAppStore((s) => s.completedQuizIds);
+  const setQuizProgress = useAppStore((s) => s.setQuizProgress);
+  const resetQuizProgress = useAppStore((s) => s.resetQuizProgress);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Resume from the persisted position (clamped in case the question bank shrank).
+  const [startProgress] = useState(() => useAppStore.getState().quizProgress);
+  const [currentIndex, setCurrentIndex] = useState(() => Math.min(startProgress.currentIndex, questions.length));
+  const [resumed, setResumed] = useState(() => startProgress.currentIndex > 0 && startProgress.currentIndex < questions.length);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [status, setStatus] = useState<'unanswered' | 'correct' | 'wrong'>('unanswered');
   const [reward, setReward] = useState<{ explanation: string; xp: number; stars: StarDefinition[] } | null>(null);
-  const [sessionCorrect, setSessionCorrect] = useState(0);
+  const [sessionCorrect, setSessionCorrect] = useState(() => startProgress.correctCount);
 
-  const question = QUIZ_QUESTIONS[currentIndex];
-  const finished = currentIndex >= QUIZ_QUESTIONS.length;
+  const question = questions[currentIndex];
+  const finished = currentIndex >= questions.length;
 
   function handleSelect(optionIndex: number) {
     if (status === 'correct') return;
@@ -37,6 +44,8 @@ export function QuizScreen() {
     if (optionIndex === question.correctIndex) {
       setStatus('correct');
       setSessionCorrect((count) => count + 1);
+      // Persist "next question" right away so leaving mid-reward-dialog still resumes past this one.
+      setQuizProgress(currentIndex + 1, sessionCorrect + 1);
       const previousXp = useAppStore.getState().xp;
       const { xpGained } = answerQuizCorrect(question.id);
       const newXp = useAppStore.getState().xp;
@@ -46,7 +55,18 @@ export function QuizScreen() {
     }
   }
 
+  function restartQuiz() {
+    setResumed(false);
+    resetQuizProgress();
+    setReward(null);
+    setSelectedOption(null);
+    setStatus('unanswered');
+    setSessionCorrect(0);
+    setCurrentIndex(0);
+  }
+
   function goToNext() {
+    setResumed(false);
     setReward(null);
     setSelectedOption(null);
     setStatus('unanswered');
@@ -59,7 +79,15 @@ export function QuizScreen() {
 
       <View style={{ padding: theme.spacing.md, gap: theme.spacing.lg, flex: 1 }}>
         {!finished && (
-          <ProgressBar progress={currentIndex / QUIZ_QUESTIONS.length} label={`Question ${currentIndex + 1} of ${QUIZ_QUESTIONS.length}`} />
+          <ProgressBar progress={currentIndex / questions.length} label={`Question ${currentIndex + 1} of ${questions.length}`} />
+        )}
+        {!finished && resumed && currentIndex > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text variant="caption" color="textSecondary">
+              Welcome back — picking up where you left off.
+            </Text>
+            <Button label="Start over" size="sm" variant="ghost" onPress={restartQuiz} />
+          </View>
         )}
 
         {finished ? (
@@ -69,8 +97,12 @@ export function QuizScreen() {
               Quiz Complete!
             </Text>
             <Text variant="body" color="textSecondary" style={{ textAlign: 'center', marginTop: theme.spacing.xs }}>
-              {`You answered ${sessionCorrect} out of ${QUIZ_QUESTIONS.length} correctly. Total answered so far: ${completedQuizIds.length}/${QUIZ_QUESTIONS.length}.`}
+              {`You answered ${sessionCorrect} out of ${questions.length} correctly. Total answered so far: ${completedQuizIds.length}/${questions.length}.`}
             </Text>
+            <Text variant="caption" color="textSecondary" style={{ textAlign: 'center', marginTop: theme.spacing.xs }}>
+              Playing again is just for practice — XP is only earned the first time.
+            </Text>
+            <Button label="Play Again" variant="secondary" onPress={restartQuiz} fullWidth style={{ marginTop: theme.spacing.md }} />
             <Button
               label="Back to Learn"
               onPress={() => router.back()}
@@ -80,7 +112,7 @@ export function QuizScreen() {
           </Card>
         ) : (
           <Card variant="raised">
-            <Text variant="title">{question.question}</Text>
+            <Text variant="title" style={dir(question.question)}>{question.question}</Text>
             <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
               {question.options.map((option, index) => {
                 const isSelected = selectedOption === index;
@@ -113,7 +145,7 @@ export function QuizScreen() {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <Text variant="body">{option}</Text>
+                    <Text variant="body" style={[{ flex: 1 }, dir(option)]}>{option}</Text>
                     {showCorrect && <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />}
                     {showWrong && <Ionicons name="close-circle" size={20} color={theme.colors.danger} />}
                   </AnimatedPressable>
@@ -137,7 +169,7 @@ export function QuizScreen() {
         message={reward?.explanation ?? ''}
         xpGained={reward?.xp}
         newlyUnlockedStars={reward?.stars}
-        actionLabel={currentIndex + 1 >= QUIZ_QUESTIONS.length ? 'See Results' : 'Next Question'}
+        actionLabel={currentIndex + 1 >= questions.length ? 'See Results' : 'Next Question'}
       />
     </View>
   );

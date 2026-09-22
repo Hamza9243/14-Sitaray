@@ -1,9 +1,12 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
+import { useDirStyle, useSpeechLanguage, useStories } from '@/cms/hooks';
 import { RewardDialog } from '@/components/RewardDialog';
+import { NarrationPlayer } from '@/components/stories/NarrationPlayer';
 import { SequenceChallenge } from '@/components/stories/SequenceChallenge';
 import { StoryPageView } from '@/components/stories/StoryPageView';
 import { StoryQuizQuestionCard } from '@/components/stories/StoryQuizQuestionCard';
@@ -14,10 +17,9 @@ import { CardBadge } from '@/components/ui/Card';
 import { Emoji } from '@/components/ui/Emoji';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
-import { STORIES } from '@/data';
 import { useTheme } from '@/design-system/useTheme';
 import { getNewlyUnlockedStars, getStoryProgress, useAppStore } from '@/hooks/useAppStore';
-import type { StarDefinition } from '@/types/content';
+import type { StarDefinition, Story } from '@/types/content';
 
 type ReaderStep = 'intro' | 'reading' | 'quiz' | 'sequence' | 'moral' | 'reward';
 type NarrationMode = 'listen' | 'readMyself';
@@ -36,7 +38,10 @@ export function StoryReaderScreen() {
   const recordStoryMoral = useAppStore((s) => s.recordStoryMoral);
   const completeStory = useAppStore((s) => s.completeStory);
 
-  const story = STORIES.find((s) => s.id === storyId);
+  const stories = useStories();
+  const dir = useDirStyle();
+  const speechLanguage = useSpeechLanguage();
+  const story = stories.find((s) => s.id === storyId);
   const progress = story ? getStoryProgress(storyProgress, story.id) : null;
 
   const [step, setStep] = useState<ReaderStep>('intro');
@@ -65,13 +70,27 @@ export function StoryReaderScreen() {
     setStep('reading');
   }
 
+  // Stories made in the CMS may have no quiz, sequence or moral — those steps are skipped.
+  function goAfter(from: 'reading' | 'quiz' | 'sequence') {
+    const s = story!;
+    if (from === 'reading' && s.quiz.length > 0) {
+      setStep('quiz');
+      setQuizIndex(0);
+      setQuizCorrect(0);
+    } else if (from !== 'sequence' && s.sequenceEvents.length >= 2) {
+      setStep('sequence');
+    } else if (s.moral) {
+      setStep('moral');
+    } else {
+      finishStory();
+    }
+  }
+
   function goToNextPage() {
     if (pageIndex + 1 < story!.pages.length) {
       setPageIndex((i) => i + 1);
     } else {
-      setStep('quiz');
-      setQuizIndex(0);
-      setQuizCorrect(0);
+      goAfter('reading');
     }
   }
 
@@ -88,16 +107,16 @@ export function StoryReaderScreen() {
       setQuizIndex((i) => i + 1);
     } else {
       recordStoryQuiz(story!.id, quizCorrect);
-      setStep('sequence');
+      goAfter('quiz');
     }
   }
 
   function handleSequenceComplete() {
     recordStorySequence(story!.id);
-    setStep('moral');
+    goAfter('sequence');
   }
 
-  function handleMoralAdvance() {
+  function finishStory() {
     recordStoryMoral(story!.id);
     const previousXp = useAppStore.getState().xp;
     const { xpGained } = completeStory(story!.id);
@@ -105,6 +124,8 @@ export function StoryReaderScreen() {
     setReward({ xp: xpGained, stars: getNewlyUnlockedStars(previousXp, newXp) });
     setStep('reward');
   }
+
+  const recorded = mode === 'listen' && story.narrationUrl ? story.narrationUrl : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -142,9 +163,14 @@ export function StoryReaderScreen() {
             <ProgressBar progress={(pageIndex + 1) / story.pages.length} label={`Page ${pageIndex + 1} of ${story.pages.length}`} />
           </View>
 
+          {recorded && <NarrationPlayer key={recorded} url={recorded} />}
+
           <View key={pageIndex} style={{ flex: 1 }}>
             <StoryPageView
               page={story.pages[pageIndex]}
+              narration={recorded ? 'recorded' : 'device'}
+              rtl={dir(story.pages[pageIndex].text) !== undefined}
+              speechLang={dir(story.pages[pageIndex].text) ? speechLanguage : undefined}
               pageIndex={pageIndex}
               totalPages={story.pages.length}
               mode={mode}
@@ -198,12 +224,12 @@ export function StoryReaderScreen() {
           <AppBar title="What's The Moral?" onBack={() => router.back()} />
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg }}>
             <StoryQuizQuestionCard
-              question={story.moral.question}
+              question={story.moral!.question}
               emoji="💭"
-              options={story.moral.options}
-              correctIndex={story.moral.correctIndex}
+              options={story.moral!.options}
+              correctIndex={story.moral!.correctIndex}
               onAnswered={() => {}}
-              onAdvance={handleMoralAdvance}
+              onAdvance={finishStory}
             />
           </View>
         </View>
@@ -213,7 +239,7 @@ export function StoryReaderScreen() {
         visible={step === 'reward' && reward !== null}
         onRequestClose={() => router.back()}
         title="Story Finished!"
-        message={`You finished "${story.title}". Great reading!`}
+        message={`You finished "${story.title}". Great reading!${!story.moral && story.moralText ? ` ${story.moralText}` : ''}`}
         xpGained={reward?.xp}
         newlyUnlockedStars={reward?.stars}
         badge={{ emoji: story.badgeEmoji, title: story.badgeTitle }}
@@ -232,7 +258,7 @@ function IntroStep({
   onBack,
   onStart,
 }: {
-  story: (typeof STORIES)[number];
+  story: Story;
   resuming: boolean;
   alreadyCompleted: boolean;
   mode: NarrationMode;
@@ -241,6 +267,7 @@ function IntroStep({
   onStart: () => void;
 }) {
   const { theme } = useTheme();
+  const dir = useDirStyle();
   // Plain CSS fade-in, not Reanimated's `entering={FadeIn}`: react-native-reanimated's web
   // layout-animation driver reliably gets stuck at its initial (invisible) state for this
   // kind of late-mounted Animated.View, leaving the whole intro screen blank — the same
@@ -265,12 +292,17 @@ function IntroStep({
               backgroundColor: 'rgba(255,255,255,0.22)',
               alignItems: 'center',
               justifyContent: 'center',
+              overflow: 'hidden',
             }}
           >
-            <Emoji size={72}>{story.coverEmoji}</Emoji>
+            {story.coverImageUrl ? (
+              <Image source={{ uri: story.coverImageUrl }} style={{ width: 140, height: 140 }} contentFit="cover" accessibilityLabel={story.title} />
+            ) : (
+              <Emoji size={72}>{story.coverEmoji}</Emoji>
+            )}
           </View>
 
-          <Text variant="h1" style={{ color: theme.colors.textInverse, textAlign: 'center' }}>
+          <Text variant="h1" style={{ color: theme.colors.textInverse, textAlign: 'center', writingDirection: dir(story.title)?.writingDirection }}>
             {story.title}
           </Text>
 
@@ -279,7 +311,7 @@ function IntroStep({
             <CardBadge label={story.difficulty === 'easy' ? 'Easy' : story.difficulty === 'medium' ? 'Medium' : 'Hard'} tone="neutral" />
           </View>
 
-          <Text variant="body" style={{ color: 'rgba(255,255,255,0.9)', textAlign: 'center' }}>
+          <Text variant="body" style={{ color: 'rgba(255,255,255,0.9)', textAlign: 'center', writingDirection: dir(story.summary)?.writingDirection }}>
             {story.summary}
           </Text>
 

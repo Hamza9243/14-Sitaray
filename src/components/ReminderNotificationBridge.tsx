@@ -19,12 +19,15 @@ import { useAppStore } from '@/hooks/useAppStore';
  */
 export function ReminderNotificationBridge() {
   const navigate = useNavigate();
-  const reminders = useAppStore((s) => s.reminders);
+  const rollDailyReminders = useAppStore((s) => s.rollDailyReminders);
   const hasHydrated = useAppStore((s) => s.hasHydrated);
 
   useEffect(() => {
-    if (!hasHydrated || !Capacitor.isNativePlatform()) return;
-    resyncReminderCalls(reminders).catch(() => {});
+    if (!hasHydrated) return;
+    // Daily calls that already fired (or were missed while the app was closed) move to their next occurrence first.
+    rollDailyReminders();
+    if (!Capacitor.isNativePlatform()) return;
+    resyncReminderCalls(useAppStore.getState().reminders).catch(() => {});
     // Only re-run when hydration completes — reminders themselves are re-synced individually
     // on create/edit (RemindersScreen), not on every store change here.
     // eslint-disable-next-line react-hooks/exhaustive-deps

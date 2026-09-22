@@ -5,14 +5,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 
+import { useCharacter } from '@/cms/hooks';
 import { CharacterAvatar } from '@/components/ui/CharacterAvatar';
 import { Text } from '@/components/ui/Text';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
-import { CHARACTERS, REMINDER_ACTIVITY_ROUTES } from '@/data/characters';
+import { REMINDER_ACTIVITY_ROUTES } from '@/data/characters';
 import { useTheme } from '@/design-system/useTheme';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useCharacterAudio } from '@/lib/characterAudio';
-import { cancelReminderCall } from '@/lib/reminderScheduler';
+import { cancelReminderCall, scheduleReminderCall } from '@/lib/reminderScheduler';
 
 type CallStage = 'ringing' | 'connecting' | 'done';
 
@@ -27,10 +28,12 @@ export function IncomingCallScreen() {
   const { reminderId } = useLocalSearchParams<{ reminderId: string }>();
   const reminders = useAppStore((s) => s.reminders);
   const setReminderStatus = useAppStore((s) => s.setReminderStatus);
+  const rollDailyReminders = useAppStore((s) => s.rollDailyReminders);
   const { play } = useCharacterAudio();
 
   const reminder = reminders.find((r) => r.id === Number(reminderId));
-  const character = CHARACTERS[reminder?.character ?? 'ali'];
+  const childGender = useAppStore((s) => s.childGender);
+  const character = useCharacter(childGender);
 
   const [stage, setStage] = useState<CallStage>('ringing');
   const [caption, setCaption] = useState<string | null>(null);
@@ -56,11 +59,20 @@ export function IncomingCallScreen() {
     );
   }
 
+  /** Records the outcome, then either re-arms tomorrow's call (daily reminders) or clears the alarm. */
+  function closeOutCall(status: 'dismissed' | 'completed') {
+    setReminderStatus(reminder!.id, status);
+    if (reminder!.daily) {
+      rollDailyReminders().forEach((next) => scheduleReminderCall(next).catch(() => {}));
+    } else {
+      cancelReminderCall(reminder!.id).catch(() => {});
+    }
+  }
+
   function handleDecline() {
     if (actedRef.current) return;
     actedRef.current = true;
-    setReminderStatus(reminder!.id, 'dismissed');
-    cancelReminderCall(reminder!.id).catch(() => {});
+    closeOutCall('dismissed');
     router.replace('/');
   }
 
@@ -75,7 +87,7 @@ export function IncomingCallScreen() {
     await play(character.audio[reminder!.type]);
 
     setStage('done');
-    setReminderStatus(reminder!.id, 'completed');
+    closeOutCall('completed');
     router.replace(REMINDER_ACTIVITY_ROUTES[reminder!.type]);
   }
 

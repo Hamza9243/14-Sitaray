@@ -6,11 +6,12 @@ export interface StarDefinition {
   honorific: string;
   lessonTitle: string;
   lessonSummary: string;
-  unlockRequirement: string;
   /** XP threshold cumulative XP must reach for this star to unlock. */
   xpThreshold: number;
   rewardLabel: string;
   gradient: readonly [string, string, string] | readonly [string, string];
+  /** Optional portrait uploaded through the CMS; the abstract gradient + initial mark shows when unset. */
+  imageUrl?: string;
 }
 
 export interface Dua {
@@ -92,10 +93,17 @@ export interface Story {
   sequenceEvents: string[];
   /** 3-5 question quick quiz shown after the story. */
   quiz: StoryQuizQuestion[];
-  /** "Choose the correct moral" challenge. */
-  moral: StoryMoralChoice;
+  /** "Choose the correct moral" challenge. Null for CMS stories without one — the reader skips that step. */
+  moral: StoryMoralChoice | null;
   badgeEmoji: string;
   badgeTitle: string;
+  /** Plain-text moral / takeaway (CMS stories), shown on the finish card. */
+  moralText?: string;
+  takeaway?: string;
+  coverImageUrl?: string;
+  /** Recorded narration for the whole story; played in Listen mode instead of device text-to-speech. */
+  narrationUrl?: string;
+  backgroundImageUrl?: string;
 }
 
 export interface Achievement {
@@ -104,6 +112,8 @@ export interface Achievement {
   description: string;
   icon: string;
   /** Condition key checked against store state to determine if earned. */
-  kind: 'dua' | 'quiz' | 'story' | 'streak' | 'star' | 'journey' | 'game';
+  kind: 'dua' | 'quiz' | 'story' | 'streak' | 'star' | 'journey' | 'game' | 'starGames' | 'certificate';
   threshold: number;
+  /** For 'game' (a game id in completedGameIds) and 'certificate' (a hub id in certificates) achievements. */
+  refId?: string;
 }

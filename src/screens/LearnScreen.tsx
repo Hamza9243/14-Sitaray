@@ -1,18 +1,21 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 
+import { useDuas, useQuizQuestions, useStories } from '@/cms/hooks';
 import { AppBar } from '@/components/ui/AppBar';
 import { Card, CardBadge } from '@/components/ui/Card';
 import { FloatingBackground } from '@/components/ui/FloatingBackground';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
-import { DUAS, QUIZ_QUESTIONS, STORIES } from '@/data';
 import { useTheme } from '@/design-system/useTheme';
 import { useAppStore } from '@/hooks/useAppStore';
 
 export function LearnScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const duas = useDuas();
+  const quizQuestions = useQuizQuestions();
+  const stories = useStories();
   const completedDuaIds = useAppStore((s) => s.completedDuaIds);
   const completedQuizIds = useAppStore((s) => s.completedQuizIds);
   const completedStoryIds = useAppStore((s) => s.completedStoryIds);
@@ -24,8 +27,8 @@ export function LearnScreen() {
       description: 'Learn short duas for everyday moments.',
       icon: 'hand-left' as const,
       tone: 'brand' as const,
-      progress: completedDuaIds.length / DUAS.length,
-      progressLabel: `${completedDuaIds.length} / ${DUAS.length} learned`,
+      progress: completedDuaIds.length / duas.length,
+      progressLabel: `${completedDuaIds.length} / ${duas.length} learned`,
       route: '/learn/duas' as const,
     },
     {
@@ -34,8 +37,8 @@ export function LearnScreen() {
       description: 'Test what you know with fun questions.',
       icon: 'help-circle' as const,
       tone: 'info' as const,
-      progress: completedQuizIds.length / QUIZ_QUESTIONS.length,
-      progressLabel: `${completedQuizIds.length} / ${QUIZ_QUESTIONS.length} answered`,
+      progress: completedQuizIds.length / quizQuestions.length,
+      progressLabel: `${completedQuizIds.length} / ${quizQuestions.length} answered`,
       route: '/learn/quiz' as const,
     },
     {
@@ -44,8 +47,8 @@ export function LearnScreen() {
       description: 'Beautiful stories about the 14 Stars.',
       icon: 'book' as const,
       tone: 'success' as const,
-      progress: completedStoryIds.length / STORIES.length,
-      progressLabel: `${completedStoryIds.length} / ${STORIES.length} finished`,
+      progress: completedStoryIds.length / stories.length,
+      progressLabel: `${completedStoryIds.length} / ${stories.length} finished`,
       route: '/learn/stories' as const,
     },
   ];
@@ -67,6 +70,13 @@ export function LearnScreen() {
             </View>
           </Card>
         ))}
+
+        <Card variant="raised" onPress={() => router.push('/discover')}>
+          <CardBadge label="Discover" tone="neutral" />
+          <Text variant="title" style={{ marginTop: theme.spacing.xs }}>
+            Good deeds, reflections, wisdom and games.
+          </Text>
+        </Card>
       </ScrollView>
     </View>
   );

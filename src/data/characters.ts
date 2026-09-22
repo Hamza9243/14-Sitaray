@@ -49,6 +49,8 @@ export interface CharacterDefinition {
    * CharacterAudioManager) instead of breaking the production build.
    */
   audio: CharacterAudioSet;
+  /** Portrait from the CMS; the emoji avatar is used when unset. */
+  imageUrl?: string;
 }
 
 const ALI_AUDIO_BASE = '/audio/characters/ali';

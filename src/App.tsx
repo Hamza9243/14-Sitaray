@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { CmsSync } from '@/cms/CmsSync';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ReminderNotificationBridge } from '@/components/ReminderNotificationBridge';
 import { AppThemeProvider } from '@/design-system/ThemeProvider';
@@ -36,6 +37,7 @@ export function App() {
             <AnimatedSplashOverlay />
           </ErrorBoundary>
           <ReminderNotificationBridge />
+          <CmsSync />
           <AppRoutes />
         </AppThemeProvider>
       </SafeAreaProvider>

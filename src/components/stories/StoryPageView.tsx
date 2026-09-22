@@ -15,10 +15,24 @@ export interface StoryPageViewProps {
   /** expo-speech rate — 1 normal. */
   rate: number;
   onNarrationDone: () => void;
+  /** 'recorded' = a narration file plays elsewhere in the reader, so device text-to-speech is off. */
+  narration?: 'device' | 'recorded';
+  rtl?: boolean;
+  speechLang?: string;
 }
 
 /** One storybook page: a symbolic illustration (never a figurative depiction of the Ma'sumeen) plus narrated, word-synced text. */
-export function StoryPageView({ page, pageIndex, totalPages, mode, rate, onNarrationDone }: StoryPageViewProps) {
+export function StoryPageView({
+  page,
+  pageIndex,
+  totalPages,
+  mode,
+  rate,
+  onNarrationDone,
+  narration = 'device',
+  rtl,
+  speechLang,
+}: StoryPageViewProps) {
   const { theme } = useTheme();
 
   return (
@@ -39,7 +53,16 @@ export function StoryPageView({ page, pageIndex, totalPages, mode, rate, onNarra
         <Emoji size={88}>{page.emoji}</Emoji>
       </LinearGradient>
 
-      <SyncedTextHighlight text={page.text} script="latin" autoPlay={mode === 'listen'} rate={rate} onDone={onNarrationDone} />
+      <SyncedTextHighlight
+        text={page.text}
+        script="latin"
+        autoPlay={mode === 'listen' && narration === 'device'}
+        hideControls={narration === 'recorded'}
+        rtl={rtl}
+        speechLang={speechLang}
+        rate={rate}
+        onDone={onNarrationDone}
+      />
 
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {Array.from({ length: totalPages }).map((_, index) => (

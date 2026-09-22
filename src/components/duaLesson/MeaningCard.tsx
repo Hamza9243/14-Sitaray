@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { View } from 'react-native';
 
+import { useDirStyle } from '@/cms/hooks';
 import { Emoji } from '@/components/ui/Emoji';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/design-system/useTheme';
@@ -13,6 +14,7 @@ export interface MeaningCardProps {
 /** The "what does it mean" beat — a bright illustrated card with one kid-friendly sentence. */
 export function MeaningCard({ emoji, explainer }: MeaningCardProps) {
   const { theme } = useTheme();
+  const dir = useDirStyle();
 
   return (
     <View style={{ alignItems: 'center', gap: theme.spacing.lg, paddingHorizontal: theme.spacing.md }}>
@@ -32,7 +34,7 @@ export function MeaningCard({ emoji, explainer }: MeaningCardProps) {
         <Emoji size={80}>{emoji}</Emoji>
       </LinearGradient>
 
-      <Text variant="h3" style={{ textAlign: 'center' }}>
+      <Text variant="h3" style={{ textAlign: 'center', writingDirection: dir(explainer)?.writingDirection }}>
         {explainer}
       </Text>
     </View>

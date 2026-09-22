@@ -27,6 +27,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Answer 5 questions to open the doors to the City of Knowledge.',
       icon: '🚪',
       estimatedSeconds: 60,
+      xpReward: 30,
     },
     {
       id: 'adl-ka-taraazu',
@@ -34,6 +35,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Help the scale of justice balance perfectly by choosing what is fair.',
       icon: '⚖️',
       estimatedSeconds: 60,
+      xpReward: 30,
     },
     {
       id: 'alqaab-wheel',
@@ -41,6 +43,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Spin the wheel of his titles and learn what each one means.',
       icon: '🎡',
       estimatedSeconds: 45,
+      xpReward: 30,
     },
     {
       id: 'laylatul-mabit',
@@ -48,6 +51,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Count the stars on the night he slept in the Prophet’s place.',
       icon: '🌙',
       estimatedSeconds: 45,
+      xpReward: 30,
     },
     {
       id: 'khyber-ka-darwaza',
@@ -55,6 +59,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Time your strength just right to lift the great gate.',
       icon: '🛡️',
       estimatedSeconds: 30,
+      xpReward: 30,
     },
     {
       id: 'hikmat-puzzle',
@@ -62,6 +67,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Put his wise words back in order, one saying at a time.',
       icon: '📜',
       estimatedSeconds: 60,
+      xpReward: 30,
     },
     {
       id: 'sadaqah-sorter',
@@ -69,6 +75,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Sort gifts between yourself and those who need them more.',
       icon: '🤲',
       estimatedSeconds: 60,
+      xpReward: 30,
     },
     {
       id: 'yateem-ka-khana',
@@ -76,6 +83,7 @@ export const IMAM_ALI_HUB: GameHubDefinition = {
       description: 'Match the food cards to help feed orphans in secret, at night.',
       icon: '🍲',
       estimatedSeconds: 60,
+      xpReward: 30,
     },
   ],
   certificateSaying: {

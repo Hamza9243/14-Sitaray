@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBadge } from '@/components/ui/Card';
 import { Dialog } from '@/components/ui/Dialog';
 import { Text } from '@/components/ui/Text';
-import { CHARACTERS, characterForGender, REMINDER_ACTIVITY_LABELS, REMINDER_ACTIVITY_TYPES, type ReminderActivityType } from '@/data/characters';
+import { characterForGender, REMINDER_ACTIVITY_LABELS, REMINDER_ACTIVITY_TYPES, type ReminderActivityType } from '@/data/characters';
 import { useTheme } from '@/design-system/useTheme';
 import { type Reminder, useAppStore } from '@/hooks/useAppStore';
 import { cancelReminderCall, ensureReminderPermissions, scheduleReminderCall } from '@/lib/reminderScheduler';
@@ -96,7 +96,7 @@ export function RemindersScreen() {
                   </View>
                   <Text variant="title">{reminder.title}</Text>
                   <Text variant="bodySmall" color="textSecondary">
-                    {formatWhen(reminder.scheduledAt)} · Call from {CHARACTERS[reminder.character].name}
+                    {formatWhen(reminder.scheduledAt)} · Call from {character.name}
                   </Text>
                 </View>
 

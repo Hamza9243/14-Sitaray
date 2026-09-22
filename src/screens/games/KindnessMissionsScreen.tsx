@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { CelebrationBurst } from '@/animations/CelebrationBurst';
@@ -15,30 +15,53 @@ import { KINDNESS_MISSIONS, KINDNESS_MISSIONS_GAME_ID } from '@/data/games/kindn
 import { useTheme } from '@/design-system/useTheme';
 import { useAppStore } from '@/hooks/useAppStore';
 
-const { missions, totalXpReward, badgeTitle, badgeDescription } = KINDNESS_MISSIONS;
+const { missions, badgeTitle, badgeDescription } = KINDNESS_MISSIONS;
+
+const missionKey = (missionId: string) => `${KINDNESS_MISSIONS_GAME_ID}:${missionId}`;
 
 export function KindnessMissionsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
-  const addXp = useAppStore((s) => s.addXp);
+  const completeMission = useAppStore((s) => s.completeMission);
   const completeGame = useAppStore((s) => s.completeGame);
 
-  const [missionIndex, setMissionIndex] = useState(0);
-  const [starsEarned, setStarsEarned] = useState(0);
-  const [celebratingMission, setCelebratingMission] = useState(false);
+  // Resume at the first mission not yet completed; a fully-completed game replays from the start (no XP).
+  const [missionIndex, setMissionIndex] = useState(() => {
+    const done = useAppStore.getState().completedMissionIds;
+    const firstOpen = missions.findIndex((m) => !done.includes(missionKey(m.id)));
+    return firstOpen === -1 ? 0 : firstOpen;
+  });
+  const [xpEarnedNow, setXpEarnedNow] = useState(0);
+  const [celebratingMission, setCelebratingMission] = useState<{ xp: number } | null>(null);
   const [finished, setFinished] = useState(false);
+  const handledMissionRef = useRef<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    []
+  );
 
   const mission = missions[missionIndex];
 
   function handleMissionComplete() {
-    addXp(mission.xpReward);
-    setStarsEarned((s) => s + mission.xpReward);
-    setCelebratingMission(true);
+    // Guards against a double-fired completion (double tap / duplicate drop events) for the same mission.
+    if (handledMissionRef.current === mission.id) return;
+    handledMissionRef.current = mission.id;
 
-    setTimeout(() => {
-      setCelebratingMission(false);
+    const { xpGained } = completeMission(KINDNESS_MISSIONS_GAME_ID, mission.id, mission.xpReward);
+    setXpEarnedNow((total) => total + xpGained);
+    setCelebratingMission({ xp: xpGained });
+
+    timerRef.current = setTimeout(() => {
+      setCelebratingMission(null);
       if (missionIndex + 1 >= missions.length) {
-        completeGame(KINDNESS_MISSIONS_GAME_ID);
+        const doneIds = useAppStore.getState().completedMissionIds;
+        if (missions.every((m) => doneIds.includes(missionKey(m.id)))) {
+          completeGame(KINDNESS_MISSIONS_GAME_ID);
+        }
         setFinished(true);
       } else {
         setMissionIndex((i) => i + 1);
@@ -47,7 +70,7 @@ export function KindnessMissionsScreen() {
   }
 
   if (finished) {
-    return <GameCompleteScreen onDone={() => router.back()} />;
+    return <GameCompleteScreen xpEarned={xpEarnedNow} onDone={() => router.back()} />;
   }
 
   return (
@@ -55,19 +78,19 @@ export function KindnessMissionsScreen() {
       <MissionScene
         missionNumber={missionIndex + 1}
         totalMissions={missions.length}
-        starsEarned={starsEarned}
+        starsEarned={xpEarnedNow}
         characterEmoji={mission.characterEmoji}
         prompt={mission.prompt}
         onExit={() => router.back()}
       >
         <MissionStage key={mission.id} mission={mission} onComplete={handleMissionComplete} />
 
-        {celebratingMission && (
+        {celebratingMission !== null && (
           <View style={{ position: 'absolute', top: '35%', alignItems: 'center' }} pointerEvents="none">
             <CelebrationBurst burstKey={mission.id} />
             <StarIcon size={56} fill={1} />
             <Text variant="h3" color="brandStrong" style={{ marginTop: theme.spacing.xs }}>
-              {`+${mission.xpReward}!`}
+              {celebratingMission.xp > 0 ? `+${celebratingMission.xp}!` : 'Well done!'}
             </Text>
           </View>
         )}
@@ -76,7 +99,7 @@ export function KindnessMissionsScreen() {
   );
 }
 
-function GameCompleteScreen({ onDone }: { onDone: () => void }) {
+function GameCompleteScreen({ xpEarned, onDone }: { xpEarned: number; onDone: () => void }) {
   const { theme } = useTheme();
 
   return (
@@ -121,7 +144,7 @@ function GameCompleteScreen({ onDone }: { onDone: () => void }) {
         >
           <StarIcon size={18} fill={1} />
           <Text variant="title" color="brandStrong">
-            {`+${totalXpReward} XP`}
+            {xpEarned > 0 ? `+${xpEarned} XP` : 'Already earned — great replay!'}
           </Text>
         </View>
 

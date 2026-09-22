@@ -2,9 +2,12 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { RewardDialog } from '@/components/RewardDialog';
 import { ActivityCard, type ActivityCardState } from '@/components/games/ActivityCard';
 import { AppBar } from '@/components/ui/AppBar';
+import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
+import { ArabicText } from '@/components/ui/ArabicText';
+import { Dialog } from '@/components/ui/Dialog';
+import { Emoji } from '@/components/ui/Emoji';
 import { GeometricPatternBackground } from '@/components/ui/GeometricPatternBackground';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
@@ -19,12 +22,11 @@ export function ImamAliHubScreen() {
   const router = useRouter();
   const activityCompletions = useAppStore((s) => s.activityCompletions);
   const certificates = useAppStore((s) => s.certificates);
-  const [noticeDismissed, setNoticeDismissed] = useState(false);
+  const [certificateOpen, setCertificateOpen] = useState(false);
 
   const completedIds = getCompletedActivityIds(activityCompletions, IMAM_ALI_HUB.id);
   const completedCount = completedIds.length;
-  const allComplete = completedCount === activities.length;
-  const certificateEarned = Boolean(certificates[IMAM_ALI_HUB.id]);
+  const certificate = certificates[IMAM_ALI_HUB.id];
 
   function stateFor(index: number): ActivityCardState {
     const activity = activities[index];
@@ -53,6 +55,35 @@ export function ImamAliHubScreen() {
           />
         </View>
 
+        {certificate && (
+          <AnimatedPressable
+            onPress={() => setCertificateOpen(true)}
+            scaleTo={0.97}
+            accessibilityRole="button"
+            accessibilityLabel="View your certificate"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: theme.spacing.sm,
+              padding: theme.spacing.md,
+              borderRadius: theme.radii.lg,
+              borderWidth: 2,
+              borderColor: theme.palette.star[400],
+              backgroundColor: 'rgba(255, 197, 38, 0.12)',
+            }}
+          >
+            <Emoji size={32}>🎓</Emoji>
+            <View style={{ flex: 1 }}>
+              <Text variant="title" style={{ color: theme.palette.neutral[50] }}>
+                Your Certificate
+              </Text>
+              <Text variant="bodySmall" style={{ color: theme.palette.night[200] }}>
+                All 8 activities complete — tap to view
+              </Text>
+            </View>
+          </AnimatedPressable>
+        )}
+
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, justifyContent: 'space-between' }}>
           {activities.map((activity, index) => (
             <ActivityCard
@@ -66,13 +97,41 @@ export function ImamAliHubScreen() {
         </View>
       </ScrollView>
 
-      <RewardDialog
-        visible={allComplete && !certificateEarned && !noticeDismissed}
-        onRequestClose={() => setNoticeDismissed(true)}
-        title="All 8 Activities Complete!"
-        message="MashaAllah! You finished Imam Ali's journey. Your certificate is being prepared."
-        actionLabel="Continue"
-      />
+      <Dialog
+        visible={certificateOpen && Boolean(certificate)}
+        onRequestClose={() => setCertificateOpen(false)}
+        title="Certificate of Completion"
+        actions={[{ label: 'Close', onPress: () => setCertificateOpen(false) }]}
+      >
+        {certificate && (
+          <View style={{ alignItems: 'center', gap: theme.spacing.xs }}>
+            <Emoji size={44}>🎓</Emoji>
+            <Text variant="caption" color="textSecondary">
+              This certifies that
+            </Text>
+            <Text variant="h2" style={{ textAlign: 'center' }}>
+              {certificate.childName}
+            </Text>
+            <Text variant="body" style={{ textAlign: 'center' }}>
+              completed all 8 activities of the {IMAM_ALI_HUB.title} journey.
+            </Text>
+            <Text variant="bodySmall" color="brandStrong" style={{ textAlign: 'center', marginTop: theme.spacing.sm }}>
+              {IMAM_ALI_HUB.certificateSaying.english}
+            </Text>
+            {IMAM_ALI_HUB.certificateSaying.urdu ? (
+              <ArabicText size={18} color="textSecondary">
+                {IMAM_ALI_HUB.certificateSaying.urdu}
+              </ArabicText>
+            ) : null}
+            <Text variant="caption" color="textSecondary">
+              {IMAM_ALI_HUB.certificateSaying.attribution}
+            </Text>
+            <Text variant="caption" color="textSecondary" style={{ marginTop: theme.spacing.xs }}>
+              {new Date(certificate.earnedAt).toLocaleDateString()}
+            </Text>
+          </View>
+        )}
+      </Dialog>
     </View>
   );
 }

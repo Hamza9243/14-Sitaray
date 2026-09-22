@@ -10,7 +10,10 @@
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
     "lint": "eslint src",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "supabase:seed": "node supabase/tools/generate-seed.mjs",
+    "supabase:fake": "node supabase/tools/fake-supabase.mjs",
+    "supabase:test": "node supabase/tests/rls.test.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -19,6 +22,7 @@
     "@capacitor/local-notifications": "^7.0.7",
     "@capacitor/splash-screen": "^7.0.5",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.116.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-icons": "^5.5.0",
@@ -35,10 +39,15 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^7.4.4",
+    "@electric-sql/pglite": "^0.5.8",
+    "@eslint/js": "^9.39.5",
     "@types/react": "~19.2.2",
     "@types/react-dom": "~19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.70.1",
+    "@typescript-eslint/parser": "^8.70.1",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "patch-package": "^8.0.1",
     "typescript": "~6.0.3",
     "vite": "^6.3.5"

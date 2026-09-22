@@ -12,6 +12,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'streak-7', title: '7 Day Streak', description: 'You opened 14 Stars 7 days in a row.', icon: 'flame', kind: 'streak', threshold: 7 },
   { id: 'streak-14', title: '14 Day Streak', description: 'You opened 14 Stars 14 days in a row.', icon: 'flame', kind: 'streak', threshold: 14 },
   { id: 'halfway', title: 'Halfway There', description: 'You unlocked 7 of the 14 Stars.', icon: 'sparkles', kind: 'star', threshold: 7 },
-  { id: 'mercy-hero', title: 'Mercy Hero Badge', description: 'You completed all 10 Kindness Missions.', icon: 'heart', kind: 'game', threshold: 1 },
+  { id: 'mercy-hero', title: 'Mercy Hero Badge', description: 'You completed all 10 Kindness Missions.', icon: 'heart', kind: 'game', threshold: 1, refId: 'kindness-missions' },
+  { id: 'imam-ali-certificate', title: 'Gate of Knowledge Certificate', description: 'You finished all 8 Imam Ali activities and earned your certificate.', icon: 'ribbon', kind: 'certificate', threshold: 1, refId: 'imam-ali-hub' },
+  { id: 'star-gamer', title: 'Star Gamer', description: 'You finished 6 Star games.', icon: 'game-controller', kind: 'starGames', threshold: 6 },
+  { id: 'all-star-games', title: 'Champion of the Stars', description: 'You finished all 12 Star games.', icon: 'medal', kind: 'starGames', threshold: 12 },
   { id: 'journey-complete', title: 'Journey Complete', description: 'You unlocked all 14 Stars!', icon: 'ribbon', kind: 'journey', threshold: 14 },
 ];

@@ -1,0 +1,115 @@
+.assoc-section + .assoc-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.assoc-section > h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+.assoc-section > p {
+  margin-bottom: 12px;
+}
+.assoc-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.assoc-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+.assoc-group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.assoc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.assoc-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 13px;
+}
+.assoc-list li > a,
+.assoc-list li > span.muted {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.assoc-links li {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: var(--surface);
+}
+.assoc-actions {
+  display: inline-flex;
+  gap: 2px;
+}
+.assoc-add {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+@media (max-width: 720px) {
+  .assoc-add {
+    grid-template-columns: 1fr;
+  }
+}
+.picker {
+  position: relative;
+}
+.picker-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+}
+.picker-menu button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+}
+.picker-menu button:hover,
+.picker-menu button:focus-visible {
+  background: var(--accent-soft);
+}
+.picker-note {
+  padding: 8px 10px;
+  font-size: 13px;
+}

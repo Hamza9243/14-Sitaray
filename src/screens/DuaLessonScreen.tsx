@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
+import { useDuas } from '@/cms/hooks';
 import { RewardDialog } from '@/components/RewardDialog';
 import { DuaAudioPlayer } from '@/components/duaLesson/DuaAudioPlayer';
 import { MeaningCard } from '@/components/duaLesson/MeaningCard';
@@ -16,10 +17,9 @@ import { Button } from '@/components/ui/Button';
 import { FloatingBackground } from '@/components/ui/FloatingBackground';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
-import { DUAS } from '@/data';
 import { useTheme } from '@/design-system/useTheme';
 import { getNewlyUnlockedStars, useAppStore } from '@/hooks/useAppStore';
-import type { StarDefinition } from '@/types/content';
+import type { Dua, StarDefinition } from '@/types/content';
 
 type StepKind = 'listen' | 'repeat' | 'meaning' | 'wordOrder' | 'missingWord' | 'meaningMatch' | 'reward';
 
@@ -33,16 +33,16 @@ const STEP_LABELS: Record<StepKind, string> = {
   reward: 'Complete',
 };
 
-function pickDistractorWords(excludeId: string, count: number): string[] {
-  const pool = DUAS.filter((d) => d.id !== excludeId)
+function pickDistractorWords(duas: Dua[], excludeId: string, count: number): string[] {
+  const pool = duas.filter((d) => d.id !== excludeId)
     .flatMap((d) => d.arabic.split(' '))
     .filter((w) => w.length > 1);
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
-function pickDistractorEmojis(excludeId: string): string[] {
-  return DUAS.filter((d) => d.id !== excludeId).flatMap((d) => d.conceptEmojis);
+function pickDistractorEmojis(duas: Dua[], excludeId: string): string[] {
+  return duas.filter((d) => d.id !== excludeId).flatMap((d) => d.conceptEmojis);
 }
 
 export function DuaLessonScreen() {
@@ -51,7 +51,8 @@ export function DuaLessonScreen() {
   const { duaId } = useLocalSearchParams<{ duaId: string }>();
   const completeDua = useAppStore((s) => s.completeDua);
 
-  const dua = DUAS.find((d) => d.id === duaId);
+  const duas = useDuas();
+  const dua = duas.find((d) => d.id === duaId);
 
   const [step, setStep] = useState<StepKind>('listen');
   const [repeatIndex, setRepeatIndex] = useState(0);
@@ -62,14 +63,23 @@ export function DuaLessonScreen() {
   const missingWordOptions = useMemo(() => {
     if (!dua) return [];
     const correct = words[blankIndex];
-    const distractors = pickDistractorWords(dua.id, 2).filter((w) => w !== correct);
+    const distractors = pickDistractorWords(duas, dua.id, 2).filter((w) => w !== correct);
     return [correct, ...distractors].sort(() => Math.random() - 0.5);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dua, blankIndex]);
 
   if (!dua) return null;
 
-  const stepOrder: StepKind[] = ['listen', ...dua.repeatSegments.map(() => 'repeat' as const), 'meaning', 'wordOrder', 'missingWord', 'meaningMatch'];
+  // CMS duas may have no concept emoji/labels, in which case the matching round is skipped.
+  const hasConcepts = dua.conceptEmojis.length > 0 && dua.conceptEmojis.length === dua.conceptLabels.length;
+  const stepOrder: StepKind[] = [
+    'listen',
+    ...dua.repeatSegments.map(() => 'repeat' as const),
+    'meaning',
+    'wordOrder',
+    'missingWord',
+    ...(hasConcepts ? ['meaningMatch' as const] : []),
+  ];
   const currentStepPosition = step === 'repeat' ? stepOrder.indexOf('repeat') + repeatIndex : stepOrder.indexOf(step);
 
   function goToNextAfterRepeat() {
@@ -147,14 +157,14 @@ export function DuaLessonScreen() {
             words={words}
             blankIndex={blankIndex}
             options={missingWordOptions}
-            onComplete={() => setStep('meaningMatch')}
+            onComplete={() => (hasConcepts ? setStep('meaningMatch') : handleFinish())}
           />
         )}
 
         {step === 'meaningMatch' && (
           <MeaningMatchChallenge
             pairs={dua.conceptEmojis.map((emoji, i) => ({ emoji, label: dua.conceptLabels[i] }))}
-            distractorEmojis={pickDistractorEmojis(dua.id)}
+            distractorEmojis={pickDistractorEmojis(duas, dua.id)}
             onComplete={handleFinish}
           />
         )}

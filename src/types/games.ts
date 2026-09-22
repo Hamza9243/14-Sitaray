@@ -61,6 +61,8 @@ export interface ActivityDefinition {
   /** A short symbolic glyph for the hub card — never a human figure for Masoomeen-related hubs. */
   icon: string;
   estimatedSeconds: number;
+  /** XP awarded once, the first time this activity is completed. */
+  xpReward: number;
 }
 
 export interface CertificateSaying {
@@ -78,3 +80,58 @@ export interface GameHubDefinition {
   activities: ActivityDefinition[];
   certificateSaying: CertificateSaying;
 }
+
+export interface StarGameChoiceRound {
+  prompt: string;
+  emoji?: string;
+  options: { emoji: string; label: string }[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface StarGameSortItem {
+  emoji: string;
+  label: string;
+  /** Index into the game's `buckets` this item belongs in. */
+  bucket: 0 | 1;
+}
+
+interface StarGameBase {
+  starId: number;
+  title: string;
+  intro: string;
+  icon: string;
+  xpReward: number;
+  badgeTitle: string;
+  /** Kid-friendly closing line shown on the completion card. */
+  closing: string;
+}
+
+/** Pick-the-best-answer scenarios, one per round. */
+export interface StarChoiceGame extends StarGameBase {
+  kind: 'choice';
+  rounds: StarGameChoiceRound[];
+}
+
+/** Tap a card on the left, then its match on the right. */
+export interface StarMatchGame extends StarGameBase {
+  kind: 'match';
+  pairs: { left: { emoji: string; label: string }; right: { emoji: string; label: string } }[];
+}
+
+/** Tap the steps in the correct order. `steps` are listed in the correct order and shuffled at runtime. */
+export interface StarOrderGame extends StarGameBase {
+  kind: 'order';
+  prompt: string;
+  steps: { emoji: string; label: string }[];
+}
+
+/** Sort each item into one of two buckets. */
+export interface StarSortGame extends StarGameBase {
+  kind: 'sort';
+  prompt: string;
+  buckets: [{ emoji: string; label: string }, { emoji: string; label: string }];
+  items: StarGameSortItem[];
+}
+
+export type StarGameDefinition = StarChoiceGame | StarMatchGame | StarOrderGame | StarSortGame;

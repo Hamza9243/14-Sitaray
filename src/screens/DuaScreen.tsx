@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 
+import { useDirStyle, useDuas } from '@/cms/hooks';
 import { AppBar } from '@/components/ui/AppBar';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
 import { Button } from '@/components/ui/Button';
@@ -9,13 +10,14 @@ import { Card } from '@/components/ui/Card';
 import { Emoji } from '@/components/ui/Emoji';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
-import { DUAS } from '@/data';
 import { useTheme } from '@/design-system/useTheme';
 import { useAppStore } from '@/hooks/useAppStore';
 
 export function DuaScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const duas = useDuas();
+  const dir = useDirStyle();
   const completedDuaIds = useAppStore((s) => s.completedDuaIds);
   const favoriteDuaIds = useAppStore((s) => s.favoriteDuaIds);
   const toggleFavoriteDua = useAppStore((s) => s.toggleFavoriteDua);
@@ -25,9 +27,22 @@ export function DuaScreen() {
       <AppBar title="Duas" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md, paddingBottom: 140 }}>
-        <ProgressBar progress={completedDuaIds.length / DUAS.length} label="Duas learned" showPercentage />
+        <ProgressBar progress={completedDuaIds.length / duas.length} label="Duas learned" showPercentage />
 
-        {DUAS.map((dua) => {
+        <Card variant="raised" onPress={() => router.push('/learn/duas/favorites')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+            <Ionicons name="heart" size={22} color={theme.palette.blossom[500]} />
+            <Text variant="title" style={{ flex: 1 }}>
+              My Favourite Duas
+            </Text>
+            <Text variant="caption" color="textSecondary">
+              {favoriteDuaIds.length}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </View>
+        </Card>
+
+        {duas.map((dua) => {
           const completed = completedDuaIds.includes(dua.id);
           const favorite = favoriteDuaIds.includes(dua.id);
 
@@ -54,8 +69,8 @@ export function DuaScreen() {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text variant="title">{dua.title}</Text>
-                  <Text variant="bodySmall" color="textSecondary" numberOfLines={1}>
+                  <Text variant="title" style={dir(dua.title)}>{dua.title}</Text>
+                  <Text variant="bodySmall" color="textSecondary" numberOfLines={1} style={dir(dua.meaningExplainer)}>
                     {dua.meaningExplainer}
                   </Text>
                 </View>

@@ -1,18 +1,19 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 
+import { useStories } from '@/cms/hooks';
 import { StoryCard } from '@/components/stories/StoryCard';
 import { AppBar } from '@/components/ui/AppBar';
 import { FloatingBackground } from '@/components/ui/FloatingBackground';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StoryCardSkeleton } from '@/components/ui/Skeleton';
-import { STORIES } from '@/data';
 import { useTheme } from '@/design-system/useTheme';
 import { getStoryProgress, getUnlockedStarIds, useAppStore } from '@/hooks/useAppStore';
 
 export function StoriesScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const stories = useStories();
   const hasHydrated = useAppStore((s) => s.hasHydrated);
   const xp = useAppStore((s) => s.xp);
   const completedStoryIds = useAppStore((s) => s.completedStoryIds);
@@ -28,17 +29,17 @@ export function StoriesScreen() {
 
       <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md, paddingBottom: 140 }}>
         {hasHydrated && (
-          <ProgressBar progress={completedStoryIds.length / STORIES.length} label="Stories finished" showPercentage />
+          <ProgressBar progress={completedStoryIds.length / stories.length} label="Stories finished" showPercentage />
         )}
 
         {!hasHydrated
           ? Array.from({ length: 3 }).map((_, index) => <StoryCardSkeleton key={index} />)
-          : STORIES.map((story) => (
+          : stories.map((story) => (
               <StoryCard
                 key={story.id}
                 story={story}
                 progress={getStoryProgress(storyProgress, story.id)}
-                locked={!unlockedStarIds.includes(story.relatedStarId)}
+                locked={story.relatedStarId > 0 && !unlockedStarIds.includes(story.relatedStarId)}
                 onPress={() => router.push({ pathname: '/learn/stories/[storyId]', params: { storyId: story.id } })}
               />
             ))}

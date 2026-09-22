@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
+import { useDailyStar, useDirStyle, useDuas, useQuizQuestions, useStories } from '@/cms/hooks';
 import { RewardDialog } from '@/components/RewardDialog';
 import { StreakCalendarDialog } from '@/components/StreakCalendarDialog';
 import { AppBar } from '@/components/ui/AppBar';
@@ -12,7 +13,6 @@ import { Emoji } from '@/components/ui/Emoji';
 import { FloatingBackground } from '@/components/ui/FloatingBackground';
 import { StarProgressRing } from '@/components/ui/StarProgressRing';
 import { Text } from '@/components/ui/Text';
-import { DUAS, QUIZ_QUESTIONS, STORIES } from '@/data';
 import { TOTAL_STARS } from '@/data/stars';
 import { useTheme } from '@/design-system/useTheme';
 import { getUnlockedStarIds, useAppStore } from '@/hooks/useAppStore';
@@ -20,31 +20,35 @@ import { getUnlockedStarIds, useAppStore } from '@/hooks/useAppStore';
 const STREAK_MILESTONES = [3, 7, 14, 30];
 
 function useDailyMission() {
+  const duas = useDuas();
+  const quizQuestions = useQuizQuestions();
+  const stories = useStories();
   const completedDuaIds = useAppStore((s) => s.completedDuaIds);
   const completedQuizIds = useAppStore((s) => s.completedQuizIds);
   const completedStoryIds = useAppStore((s) => s.completedStoryIds);
 
   return useMemo(() => {
-    const nextDua = DUAS.find((d) => !completedDuaIds.includes(d.id));
+    const nextDua = duas.find((d) => !completedDuaIds.includes(d.id));
     if (nextDua) {
       return { type: 'dua' as const, title: `Learn today's Dua: ${nextDua.title}`, xp: nextDua.xpReward, route: '/learn/duas' as const };
     }
-    const nextQuiz = QUIZ_QUESTIONS.find((q) => !completedQuizIds.includes(q.id));
+    const nextQuiz = quizQuestions.find((q) => !completedQuizIds.includes(q.id));
     if (nextQuiz) {
       return { type: 'quiz' as const, title: 'Answer today’s quiz question', xp: nextQuiz.xpReward, route: '/learn/quiz' as const };
     }
-    const nextStory = STORIES.find((s) => !completedStoryIds.includes(s.id));
+    const nextStory = stories.find((s) => !completedStoryIds.includes(s.id));
     if (nextStory) {
       return { type: 'story' as const, title: `Read: ${nextStory.title}`, xp: nextStory.xpReward, route: '/learn/stories' as const };
     }
     return null;
-  }, [completedDuaIds, completedQuizIds, completedStoryIds]);
+  }, [duas, quizQuestions, stories, completedDuaIds, completedQuizIds, completedStoryIds]);
 }
 
 export function HomeScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const childName = useAppStore((s) => s.childName);
+  const childAge = useAppStore((s) => s.childAge);
   const xp = useAppStore((s) => s.xp);
   const streakCount = useAppStore((s) => s.streakCount);
   const recordAppOpen = useAppStore((s) => s.recordAppOpen);
@@ -53,7 +57,9 @@ export function HomeScreen() {
 
   const unlockedCount = getUnlockedStarIds(xp).length;
   const dailyMission = useDailyMission();
-  const featuredStory = STORIES[0];
+  const featuredStory = useStories()[0];
+  const dailyStar = useDailyStar();
+  const dir = useDirStyle();
 
   useEffect(() => {
     const previousStreak = useAppStore.getState().streakCount;
@@ -104,8 +110,28 @@ export function HomeScreen() {
             <Text variant="h2">{childName}</Text>
             <Emoji size={20}>✨</Emoji>
           </View>
+          {childAge !== null && (
+            <View style={{ alignSelf: 'center', marginBottom: theme.spacing.sm }}>
+              <CardBadge label={`Age ${childAge}`} tone="info" />
+            </View>
+          )}
           <StarProgressRing current={unlockedCount} total={TOTAL_STARS} caption="Stars Unlocked" />
         </Card>
+
+        {dailyStar && (
+          <Card variant="raised" glowColor={theme.palette.star[600]}>
+            <CardBadge label="Today's Daily Star" tone="info" />
+            <Text variant="title" style={[{ marginTop: theme.spacing.xs }, dir(dailyStar.title)]}>
+              {dailyStar.title}
+            </Text>
+            {dailyStar.shortStory ? (
+              <Text variant="bodySmall" color="textSecondary" numberOfLines={2} style={dir(dailyStar.shortStory)}>
+                {dailyStar.shortStory}
+              </Text>
+            ) : null}
+            <Button label="Open Daily Star" onPress={() => router.push('/daily-star')} fullWidth style={{ marginTop: theme.spacing.sm }} />
+          </Card>
+        )}
 
         {dailyMission && (
           <Card variant="raised" glowColor={theme.palette.star[600]}>
