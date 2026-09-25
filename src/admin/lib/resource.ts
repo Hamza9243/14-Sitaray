@@ -76,7 +76,8 @@ export function buildPayload(def: ResourceDef, values: Row): { payload: Row; err
   const payload: Row = {};
   const errors: Record<string, string> = {};
   for (const f of def.fields) {
-    if (f.readOnly) continue;
+    // readOnly only disables the input control — the value (e.g. audio.duration_seconds, synced from the
+    // chosen file) still needs to reach the database, so it is NOT excluded from the save payload here.
     if (f.showWhen && !f.showWhen(values)) continue;
     const { value, error } = coerce(f, values[f.name]);
     payload[f.name] = value;

@@ -11,6 +11,7 @@ export interface Column<T> {
   align?: 'left' | 'right' | 'center';
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic table rows are dynamically shaped.
 export function DataTable<T extends Record<string, any>>({
   columns,
   rows,

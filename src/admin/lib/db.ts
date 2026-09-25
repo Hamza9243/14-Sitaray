@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { getAdminClient } from '@/lib/supabase';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase rows are dynamically shaped per table.
 export type Row = Record<string, any>;
 export type Status = 'draft' | 'published' | 'unpublished';
 

@@ -31,25 +31,26 @@ export function RichTextEditor({
   disabled?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // While the user is actively editing, the DOM is the source of truth — the value prop is just an echo of
+  // our own onChange, and resyncing from it mid-type fights the caret (Enter's new block gets clobbered by
+  // the stale-echo rewrite, so the next keystroke lands back at the start). Only resync once focus leaves.
+  const focused = useRef(false);
 
-  // Enter should create <p> blocks (browsers default to <div>).
-  useEffect(() => {
-    document.execCommand('defaultParagraphSeparator', false, 'p');
-  }, []);
+  // Enter should create <p> blocks (browsers default to <div>); must be re-armed on focus, not just once —
+  // Chrome forgets it if the command was issued before the element ever had focus.
+  const armParagraphs = () => document.execCommand('defaultParagraphSeparator', false, 'p');
 
-  // Push external value changes (loading a record, switching language tab) into the editable area — but only
-  // when the value really differs from what the area already shows, so typing never resets the caret.
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    const incoming = value ? sanitizeRichText(value, true) : '';
-    if (incoming !== sanitizeRichText(el.innerHTML, true)) el.innerHTML = incoming || (value ? plainToHtml(value) : '');
+    if (!el || focused.current) return;
+    const incoming = value ? sanitizeRichText(value) : '';
+    if (incoming !== sanitizeRichText(el.innerHTML)) el.innerHTML = incoming || (value ? plainToHtml(value) : '');
   }, [value]);
 
   const emit = () => {
     const el = ref.current;
     if (!el) return;
-    onChange(sanitizeRichText(el.innerHTML, true));
+    onChange(sanitizeRichText(el.innerHTML));
   };
 
   const commands: (Cmd | 'sep')[] = [
@@ -106,8 +107,15 @@ export function RichTextEditor({
         aria-label="Rich text"
         data-placeholder={placeholder}
         style={{ minHeight }}
+        onFocus={() => {
+          focused.current = true;
+          armParagraphs();
+        }}
         onInput={emit}
-        onBlur={emit}
+        onBlur={() => {
+          focused.current = false;
+          emit();
+        }}
         onPaste={(e) => {
           e.preventDefault();
           const text = e.clipboardData.getData('text/plain');

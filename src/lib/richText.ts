@@ -7,6 +7,31 @@ const ALLOWED = new Set(['P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U', 'H2', 'H3', '
 const looksLikeHtml = (s: string) => /<\/?(p|br|strong|b|em|i|u|h2|h3|ul|ol|li|blockquote|div|span)\b/i.test(s);
 
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const BLOCK_TAGS = new Set(['P', 'DIV', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE']);
+
+/**
+ * contentEditable's Enter key wraps the block it CREATES in <p>, but leaves whatever text preceded the
+ * first Enter as a loose run directly under the root (e.g. typing "A", Enter, "B" leaves "A<p>B</p>", not
+ * "<p>A</p><p>B</p>"). That loose run would otherwise never match richTextToParagraphs' `p, h2, ...`
+ * selector and silently vanish. Wrap each run of non-block nodes into its own <p> before cleaning.
+ */
+function wrapLooseRuns(container: Element) {
+  let run: Node[] = [];
+  const flush = () => {
+    if (run.length === 0) return;
+    if (run.some((n) => (n.textContent ?? '').trim() !== '')) {
+      const p = container.ownerDocument.createElement('p');
+      run[0].parentNode?.insertBefore(p, run[0]);
+      run.forEach((n) => p.appendChild(n));
+    }
+    run = [];
+  };
+  Array.from(container.childNodes).forEach((node) => {
+    if (node.nodeType === Node.ELEMENT_NODE && BLOCK_TAGS.has((node as Element).tagName)) flush();
+    else run.push(node);
+  });
+  flush();
+}
 
 export function plainToHtml(text: string): string {
   return text
@@ -17,11 +42,12 @@ export function plainToHtml(text: string): string {
     .join('');
 }
 
-/** Removes every tag/attribute outside the allowed subset (keeps the text of removed tags). Empty paragraphs are dropped unless keepEmptyBlocks (the editor keeps them while typing). */
-export function sanitizeRichText(input: string | null | undefined, keepEmptyBlocks = false): string {
+/** Removes every tag/attribute outside the allowed subset (keeps the text of removed tags) and drops empty paragraphs. */
+export function sanitizeRichText(input: string | null | undefined): string {
   if (!input) return '';
   const html = looksLikeHtml(input) ? input : plainToHtml(input);
   const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+  wrapLooseRuns(doc.body);
 
   const clean = (node: Node): string => {
     let out = '';

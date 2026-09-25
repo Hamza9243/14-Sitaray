@@ -19,6 +19,7 @@ interface LookupsValue {
   categories: Row[];
   languages: Language[];
   characters: Row[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- app_settings values are per-key jsonb blobs.
   settings: Record<string, any>;
   limits: UploadLimits;
   defaultLanguage: string;
