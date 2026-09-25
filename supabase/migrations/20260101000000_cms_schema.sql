@@ -1015,8 +1015,11 @@ grant execute on function public.dashboard_stats(), public.recent_content(int), 
 -- listing and every write is restricted to admins.
 -- ----------------------------------------------------------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values
+  -- No image/svg+xml: the client never lets an admin upload one (see detectKind in src/admin/lib/media.ts),
+  -- and since these buckets are public-read, an SVG served back would run as active, script-capable markup
+  -- rather than inert image bytes if ever opened directly.
   ('media-images', 'media-images', true, 10485760,
-    array['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml']),
+    array['image/png', 'image/jpeg', 'image/webp', 'image/gif']),
   ('media-audio', 'media-audio', true, 52428800,
     array['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/ogg', 'application/ogg']),
   ('media-animation', 'media-animation', true, 20971520,

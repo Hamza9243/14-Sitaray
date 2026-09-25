@@ -302,7 +302,11 @@ export async function uploadMedia(file: File, opts: UploadOptions = {}): Promise
   const id = newId();
   const month = new Date().toISOString().slice(0, 7);
   const path = `${folder}/${month}/${id}.${ext}`;
-  const contentType = file.type && file.type !== 'application/octet-stream' ? file.type : MIME_BY_EXT[ext] ?? 'application/octet-stream';
+  // Never trust the browser-reported file.type for the stored Content-Type: a file can freely lie about
+  // its MIME (e.g. an SVG with script content saved with a .png name), and since buckets are public-read,
+  // a mismatched type could get served back and rendered as something other than inert image bytes.
+  // Derive it from the extension `validateFile` already vetted against KIND_INFO's fixed allowlist instead.
+  const contentType = MIME_BY_EXT[ext] ?? 'application/octet-stream';
   const token = await accessToken();
 
   await xhrUpload(bucket, path, file, contentType, token, opts.onProgress, opts.signal);
@@ -356,7 +360,8 @@ export async function replaceMediaFile(media: MediaRow, file: File, opts: Pick<U
   const ext = extOf(file.name);
   const month = new Date().toISOString().slice(0, 7);
   const path = `${media.folder}/${month}/${newId()}.${ext}`;
-  const contentType = file.type && file.type !== 'application/octet-stream' ? file.type : MIME_BY_EXT[ext] ?? 'application/octet-stream';
+  // See uploadMedia: derive Content-Type from the vetted extension, never the browser-reported file.type.
+  const contentType = MIME_BY_EXT[ext] ?? 'application/octet-stream';
   const token = await accessToken();
   await xhrUpload(media.bucket, path, file, contentType, token, opts.onProgress, opts.signal);
 
