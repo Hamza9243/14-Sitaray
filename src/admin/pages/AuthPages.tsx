@@ -10,7 +10,7 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle?: st
     <div className="auth-page">
       <div className="auth-card">
         <div className="brand brand-auth">
-          <span className="brand-mark">★</span>
+          <img className="brand-mark" src="/favicon.png" alt="" />
           <div>
             <strong>14 Stars</strong>
             <span>Content Studio</span>

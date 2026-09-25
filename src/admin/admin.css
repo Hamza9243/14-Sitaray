@@ -1,31 +1,39 @@
-/* 14 Stars — Content Studio. Deliberately unlike the colourful child app: a calm, professional SaaS look. */
+/*
+ * 14 Stars — Content Studio. A professional SaaS layout (tables, forms, cards — not the child app's
+ * playful screens), but branded with the app's own palette (star gold / night indigo) and type family
+ * (Baloo 2 for headings, Nunito for body — both already loaded globally via public/fonts.css) instead of
+ * a generic indigo SaaS theme, so the dashboard reads as unmistakably "14 Stars".
+ */
 :root {
-  --bg: #f4f5f9;
+  --bg: #fbf6ec;
   --surface: #ffffff;
-  --surface-2: #f8f9fc;
-  --border: #e3e6ee;
-  --border-strong: #cfd4e1;
-  --text: #171b2e;
-  --muted: #667089;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-soft: #eef0ff;
-  --side: #0f1424;
-  --side-text: #aab2c8;
-  --green: #12805c;
-  --green-soft: #e3f6ee;
-  --amber: #a5670a;
-  --amber-soft: #fdf2dc;
-  --red: #c0304a;
-  --red-soft: #fdeaee;
-  --blue: #1d5fc4;
-  --blue-soft: #e6f0ff;
-  --violet: #6d3fc0;
-  --violet-soft: #f0e9ff;
-  --radius: 10px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
-  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.18);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --surface-2: #fff8e1;
+  --border: #e5dac2;
+  --border-strong: #c9bc9e;
+  --text: #211e17;
+  --muted: #7d7259;
+  --accent: #ffb100;
+  --accent-hover: #f59a00;
+  --accent-soft: #fff8e1;
+  --accent-ink: #100d30;
+  --side: #100d30;
+  --side-text: #b2abea;
+  --green: #1fb165;
+  --green-soft: #eafbf0;
+  --amber: #b56800;
+  --amber-soft: #ffedb3;
+  --red: #e5484d;
+  --red-soft: #fdecec;
+  --blue: #0d9ef5;
+  --blue-soft: #e7f7ff;
+  --violet: #8730cc;
+  --violet-soft: #f6eefc;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(16, 13, 48, 0.06), 0 1px 3px rgba(16, 13, 48, 0.07);
+  --shadow-lg: 0 12px 32px rgba(16, 13, 48, 0.2);
+  --font-display: 'Baloo2_700Bold', ui-sans-serif, system-ui, sans-serif;
+  --font-display-xbold: 'Baloo2_800ExtraBold', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Nunito_400Regular', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* index.html styles #root/body for the child app (flex, dark, overflow hidden) — undo that for the dashboard. */
@@ -59,6 +67,12 @@ h3,
 p {
   margin: 0;
 }
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: normal; /* weight lives in the font file itself (Baloo2_700Bold etc.) */
+}
 h1 {
   font-size: 22px;
   line-height: 1.25;
@@ -68,7 +82,7 @@ h3 {
   font-size: 15px;
 }
 a {
-  color: var(--accent);
+  color: var(--accent-hover);
   text-decoration: none;
 }
 code {
@@ -137,7 +151,7 @@ code {
   background: none;
   border: 0;
   padding: 0;
-  color: var(--accent);
+  color: var(--accent-hover);
   cursor: pointer;
   font: inherit;
 }
@@ -179,14 +193,13 @@ code {
   color: var(--side-text);
 }
 .brand-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  color: #fff;
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ffd24d, #ffb100 55%, #f59a00);
+  padding: 5px;
+  box-shadow: 0 2px 6px rgba(255, 177, 0, 0.35);
+  object-fit: contain;
 }
 .nav-heading {
   margin: 16px 10px 6px;
@@ -258,7 +271,7 @@ code {
   height: 32px;
   border-radius: 50%;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-hover);
   font-weight: 700;
 }
 .menu-btn {
@@ -282,7 +295,7 @@ code {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: radial-gradient(1200px 500px at 50% -10%, #e0e4ff 0%, transparent 60%), var(--bg);
+  background: radial-gradient(1200px 500px at 50% -10%, #ffedb3 0%, transparent 60%), var(--bg);
 }
 .auth-card {
   width: 100%;
@@ -359,8 +372,8 @@ code {
 }
 .btn-primary {
   background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  border-color: var(--accent-hover);
+  color: var(--accent-ink);
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
@@ -412,7 +425,7 @@ code {
   height: 22px;
   border-radius: 50%;
   border: 3px solid var(--border);
-  border-top-color: var(--accent);
+  border-top-color: var(--accent-hover);
   animation: spin 0.8s linear infinite;
   display: inline-block;
 }
@@ -480,7 +493,7 @@ code {
   margin-bottom: 6px;
 }
 .back-link:hover {
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 .alert {
   border-radius: 8px;
@@ -518,7 +531,7 @@ code {
   display: grid;
   place-items: center;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 /* ------------------------------------------------------------------ badges */
@@ -753,7 +766,7 @@ textarea.input {
 }
 .tab-active {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 .tab-count {
   margin-left: 6px;
@@ -1032,7 +1045,7 @@ textarea.input {
   padding: 14px 12px;
 }
 .dropzone-active {
-  border-color: var(--accent);
+  border-color: var(--accent-hover);
   background: var(--accent-soft);
 }
 .dropzone-disabled {
@@ -1102,7 +1115,7 @@ textarea.input {
   text-align: center;
 }
 .media-tile:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-hover);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .media-tile-name {
@@ -1124,7 +1137,7 @@ textarea.input {
   place-items: center;
   border-radius: 8px;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 .thumb-empty {
   width: 44px;
@@ -1185,7 +1198,7 @@ textarea.input {
   border-radius: 50%;
   border: 0;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   display: grid;
   place-items: center;
   cursor: pointer;

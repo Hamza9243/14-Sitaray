@@ -47,7 +47,7 @@ export function AdminLayout() {
     <div className="shell">
       <aside className={cx('sidebar', open && 'sidebar-open')}>
         <div className="brand">
-          <span className="brand-mark">★</span>
+          <img className="brand-mark" src="/favicon.png" alt="" />
           <div>
             <strong>14 Stars</strong>
             <span>Content Studio</span>
